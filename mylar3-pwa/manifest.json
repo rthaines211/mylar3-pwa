@@ -1,0 +1,53 @@
+{
+  "short_name": "Mylar3",
+  "name": "Mylar3 Mobile Companion",
+  "description": "Mobile companion app for Mylar3 comic book management",
+  "start_url": "./",
+  "display": "fullscreen",
+  "orientation": "portrait-primary",
+  "theme_color": "#1F1F1F",
+  "background_color": "#1F1F1F",
+  "scope": "./",
+  "categories": ["entertainment", "productivity"],
+  "lang": "en",
+  "icons": [
+    { 
+      "src": "icon-192.svg", 
+      "sizes": "192x192", 
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    { 
+      "src": "icon-512.svg", 
+      "sizes": "512x512", 
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "screenshot-1.png",
+      "sizes": "390x844",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Library view"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Pull List",
+      "short_name": "Pull List",
+      "description": "View this week's pull list",
+      "url": "./Pull-list.html",
+      "icons": [{ "src": "icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Wanted",
+      "short_name": "Wanted",
+      "description": "View wanted comics",
+      "url": "./wanted.html",
+      "icons": [{ "src": "icon-192.png", "sizes": "192x192" }]
+    }
+  ],
+  "prefer_related_applications": false
+}

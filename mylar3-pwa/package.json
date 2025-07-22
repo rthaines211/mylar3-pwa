@@ -1,0 +1,46 @@
+{
+  "name": "mylar3-pwa",
+  "version": "1.0.0",
+  "description": "Modern Progressive Web App for Mylar3 comic book management",
+  "main": "index.html",
+  "scripts": {
+    "start": "python3 -m http.server 8888",
+    "start-db": "python3 cors_server.py",
+    "start-proxy": "cd mylar-pull-proxy && npm start",
+    "setup": "cd mylar-pull-proxy && npm install",
+    "dev": "echo 'Run: npm run setup, then start 3 terminals with: npm start, npm run start-db, npm run start-proxy'"
+  },
+  "keywords": [
+    "mylar3",
+    "comics",
+    "pwa",
+    "progressive-web-app",
+    "comic-book-management"
+  ],
+  "author": "Mylar3 PWA Project",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "your-repo-url-here"
+  },
+  "engines": {
+    "node": ">=14.0.0",
+    "python": ">=3.6.0"
+  },
+  "dependencies": {},
+  "devDependencies": {},
+  "files": [
+    "*.html",
+    "*.js",
+    "*.css",
+    "*.json",
+    "*.py",
+    "lib/",
+    "mylar-pull-proxy/",
+    "README.md",
+    "SETUP_GUIDE.md",
+    "TROUBLESHOOTING.md",
+    "PRODUCTION_NOTES.md",
+    "GETTING_STARTED.md"
+  ]
+}

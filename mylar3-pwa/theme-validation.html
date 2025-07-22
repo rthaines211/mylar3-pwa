@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Theme System Validation</title>
+    <link rel="stylesheet" href="themes.css">
+    <style>
+        .validation-item {
+            padding: 1rem;
+            margin: 0.5rem 0;
+            border-radius: 0.5rem;
+            border: 1px solid var(--border-color);
+            background-color: var(--bg-secondary);
+        }
+        .success { color: var(--success-color); }
+        .error { color: var(--error-color); }
+        .warning { color: var(--warning-color); }
+    </style>
+</head>
+<body class="min-h-screen bg-[#1F1F1F] text-[#ECECEC] p-4">
+    <div class="max-w-4xl mx-auto">
+        <h1 class="text-3xl font-bold mb-6">Mylar3 PWA Theme System Validation</h1>
+        
+        <!-- Theme Controls -->
+        <div class="validation-item">
+            <h2 class="text-xl font-semibold mb-4">Theme Controls</h2>
+            <div class="flex items-center space-x-4">
+                <!-- Theme Toggle -->
+                <div class="relative">
+                    <input type="checkbox" id="theme-switch" class="sr-only">
+                    <label for="theme-switch" class="flex items-center cursor-pointer">
+                        <div class="relative w-12 h-6 bg-[#444444] rounded-full transition-colors">
+                            <div class="theme-toggle-slider"></div>
+                        </div>
+                        <span class="ml-3 text-sm">Dark/Light</span>
+                    </label>
+                </div>
+                <button onclick="forceToggle()" class="bg-[#CCAF45] text-[#1F1F1F] px-4 py-2 rounded">
+                    Force Toggle
+                </button>
+                <button onclick="resetTheme()" class="bg-[#2D2D2D] text-[#ECECEC] px-4 py-2 rounded">
+                    Reset to Dark
+                </button>
+            </div>
+        </div>
+
+        <!-- Current State -->
+        <div class="validation-item">
+            <h2 class="text-xl font-semibold mb-4">Current State</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <p><strong>Current Theme:</strong> <span id="current-theme" class="success">loading...</span></p>
+                    <p><strong>localStorage:</strong> <span id="localStorage-theme" class="success">loading...</span></p>
+                    <p><strong>HTML data-theme:</strong> <span id="html-theme" class="success">loading...</span></p>
+                </div>
+                <div>
+                    <p><strong>Theme Manager:</strong> <span id="theme-manager-status" class="success">loading...</span></p>
+                    <p><strong>Switch Element:</strong> <span id="switch-status" class="success">loading...</span></p>
+                    <p><strong>Switch Checked:</strong> <span id="switch-checked" class="success">loading...</span></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- CSS Variables Test -->
+        <div class="validation-item">
+            <h2 class="text-xl font-semibold mb-4">CSS Variables Test</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="bg-[#2D2D2D] p-4 rounded">
+                    <h3 class="font-semibold text-[#CCCCCC] mb-2">Secondary Background</h3>
+                    <p class="text-[#999999]">This should adapt to theme</p>
+                </div>
+                <div class="bg-[#444444] p-4 rounded">
+                    <h3 class="font-semibold text-[#CCCCCC] mb-2">Tertiary Background</h3>
+                    <p class="text-[#999999]">This should adapt to theme</p>
+                </div>
+                <div class="bg-[#CCAF45] p-4 rounded">
+                    <h3 class="font-semibold text-[#1F1F1F] mb-2">Accent Color</h3>
+                    <p class="text-[#1F1F1F]">This should adapt to theme</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Form Elements Test -->
+        <div class="validation-item">
+            <h2 class="text-xl font-semibold mb-4">Form Elements Test</h2>
+            <div class="space-y-4">
+                <input type="text" class="bg-[#2D2D2D] border border-[#444444] text-[#ECECEC] px-3 py-2 rounded w-full" placeholder="Test input field">
+                <textarea class="bg-[#2D2D2D] border border-[#444444] text-[#ECECEC] px-3 py-2 rounded w-full h-20" placeholder="Test textarea"></textarea>
+                <select class="bg-[#2D2D2D] border border-[#444444] text-[#ECECEC] px-3 py-2 rounded">
+                    <option>Option 1</option>
+                    <option>Option 2</option>
+                    <option>Option 3</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Auto-refresh Status -->
+        <div class="validation-item">
+            <h2 class="text-xl font-semibold mb-4">Auto-refresh Status</h2>
+            <div id="validation-log" class="bg-[#2D2D2D] p-4 rounded h-32 overflow-y-auto text-sm">
+                <div class="text-[#CCCCCC]">Validation log will appear here...</div>
+            </div>
+        </div>
+    </div>
+
+    <script src="./theme-manager.js"></script>
+    <script>
+        let refreshInterval;
+        
+        function updateStatus() {
+            // Update current theme
+            const currentTheme = window.themeManager ? window.themeManager.currentTheme : 'unknown';
+            document.getElementById('current-theme').textContent = currentTheme;
+            
+            // Update localStorage
+            const lsTheme = localStorage.getItem('theme') || 'not set';
+            document.getElementById('localStorage-theme').textContent = lsTheme;
+            
+            // Update HTML attribute
+            const htmlTheme = document.documentElement.getAttribute('data-theme') || 'not set';
+            document.getElementById('html-theme').textContent = htmlTheme;
+            
+            // Update theme manager status
+            const tmStatus = window.themeManager ? 'initialized' : 'not found';
+            document.getElementById('theme-manager-status').textContent = tmStatus;
+            
+            // Update switch status
+            const switchElement = document.getElementById('theme-switch');
+            const switchStatus = switchElement ? 'found' : 'not found';
+            document.getElementById('switch-status').textContent = switchStatus;
+            
+            // Update switch checked status
+            const switchChecked = switchElement ? switchElement.checked : false;
+            document.getElementById('switch-checked').textContent = switchChecked;
+            
+            // Log to validation log
+            const logDiv = document.getElementById('validation-log');
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = `[${timestamp}] Theme: ${currentTheme}, Switch: ${switchChecked}`;
+            logDiv.innerHTML += `<div class="text-[#CCCCCC]">${logEntry}</div>`;
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+        
+        function forceToggle() {
+            if (window.themeManager) {
+                window.themeManager.toggleTheme();
+                updateStatus();
+            }
+        }
+        
+        function resetTheme() {
+            if (window.themeManager) {
+                window.themeManager.applyTheme('dark');
+                updateStatus();
+            }
+        }
+        
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(() => {
+                updateStatus();
+                // Start auto-refresh
+                refreshInterval = setInterval(updateStatus, 2000);
+            }, 500);
+        });
+        
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', function() {
+            if (refreshInterval) {
+                clearInterval(refreshInterval);
+            }
+        });
+    </script>
+</body>
+</html>

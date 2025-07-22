@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+  <title>History Logs</title>
+  
+  <!-- PWA and iOS Meta Tags -->
+  <link rel="manifest" href="./manifest.json">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Mylar3">
+  <meta name="theme-color" content="#1F1F1F">
+  <link rel="apple-touch-icon" href="icon-192.svg">
+  <link rel="icon" type="image/svg+xml" href="icon-192.svg">
+  
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    // Suppress Tailwind CDN production warning in PWA
+    const originalWarn = console.warn;
+    console.warn = function(...args) {
+      if (args[0] && args[0].includes('cdn.tailwindcss.com should not be used in production')) {
+        return; // Suppress this specific warning
+      }
+      originalWarn.apply(console, args);
+    };
+  </script>
+  <link rel="stylesheet" href="themes.css">
+  <script src="./config.js"></script>
+  <script src="./theme-manager.js"></script>
+  <script src="./pwa-utils.js"></script>
+  <style>
+    .line-clamp-2 {
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+  </style>
+</head>
+<body class="bg-[#1F1F1F] text-[#ECECEC] min-h-screen flex flex-col">
+  
+  <!-- Top Bar -->
+  <header class="fixed top-0 left-0 right-0 bg-[#1F1F1F] flex items-center justify-between px-4 py-3 border-b border-[#444444] z-50" style="padding-top: calc(0.75rem + env(safe-area-inset-top, 0px));">
+    <div class="w-10"></div> <!-- spacer -->
+    <h1 class="text-xl font-semibold">History</h1>
+    <button id="historySearchToggle" aria-label="Search" class="w-10 h-10 flex items-center justify-center text-[#CCAF45]">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2"/>
+        <line x1="21" y1="21" x2="16.65" y2="16.65" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+    </button>
+  </header>
+
+  <!-- Search Control -->
+  <div class="fixed left-0 right-0 bg-[#1F1F1F] px-4 py-3 border-b border-[#444444] z-40" style="top: calc(4rem + env(safe-area-inset-top, 0px));">
+    <input id="historySearchInput" type="text" placeholder="Filter history..."
+           class="hidden w-full p-3 bg-[#2D2D2D] border border-[#444444] rounded-md text-[#ECECEC] placeholder-[#999999] focus:outline-none focus:border-[#CCAF45]" />
+  </div>
+
+  <!-- Main Content -->
+  <main class="flex-1 overflow-auto px-4 py-3" style="padding-top: calc(8rem + env(safe-area-inset-top, 0px)); padding-bottom: calc(3rem + env(safe-area-inset-bottom, 0px) * 0.5);">
+    <div id="historyContent" class="space-y-3">Loading…</div>
+  </main>
+
+  <!-- Bottom Navigation -->
+  <nav class="fixed bottom-0 left-0 right-0 bg-[#1F1F1F] border-t border-[#444444]" style="padding-bottom: calc(env(safe-area-inset-bottom, 0px) * 0.5);">
+    <div class="flex justify-around items-center h-16">
+      <a href="index.html" class="flex flex-col items-center justify-center text-[#999999] focus:outline-none focus:text-[#ECECEC]">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+      </svg>
+      <span class="text-xs mt-1 font-medium">Library</span>
+    </a>
+    <a href="add.html" class="flex flex-col items-center justify-center text-[#999999] focus:outline-none focus:text-[#ECECEC]">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+      </svg>
+      <span class="text-xs mt-1">Add</span>
+    </a>
+    <a href="Pull-list.html" class="flex flex-col items-center justify-center text-[#999999] focus:outline-none focus:text-[#ECECEC]">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3M3 11h18M5 21h14a2 2 0 002-2V8H3v11a2 2 0 002 2z"/>
+      </svg>
+      <span class="text-xs mt-1">This Week</span>
+    </a>
+    <a href="history.html" class="flex flex-col items-center justify-center text-[#CCAF45] focus:outline-none focus:text-[#ECECEC]">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+      </svg>
+      <span class="text-xs mt-1">History</span>
+    </a>
+    <a href="settings.html" class="flex flex-col items-center justify-center text-[#999999] focus:outline-none focus:text-[#ECECEC]">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+      </svg>
+      <span class="text-xs mt-1">Settings</span>
+    </a>
+    </div>
+  </nav>
+
+  <script>
+    let mylarConfig;
+    let allHistory = [];
+
+    // Initialize auto-refresh for history page
+    function initializeAutoRefreshForHistory() {
+      // Check if auto-refresh is enabled
+      const autoRefreshEnabled = localStorage.getItem('autoRefreshEnabled') !== 'false';
+      
+      if (autoRefreshEnabled) {
+        console.log('Auto-refresh is enabled for history page');
+        
+        // Set up auto-refresh interval (15 minutes)
+        setInterval(async () => {
+          console.log('Auto-refreshing history data...');
+          await refreshHistoryData();
+        }, 15 * 60 * 1000);
+      }
+    }
+
+    // Function to refresh history data
+    async function refreshHistoryData() {
+      try {
+        // Re-run the history loading function if it exists
+        if (typeof loadHistory === 'function') {
+          await loadHistory();
+        } else if (typeof fetchHistory === 'function') {
+          await fetchHistory();
+        } else {
+          // Fallback: reload the page
+          window.location.reload();
+        }
+        
+        console.log('History data refreshed successfully');
+        
+        // Show subtle refresh notification
+        showHistoryRefreshNotification('History refreshed automatically');
+        
+      } catch (error) {
+        console.error('Failed to refresh history data:', error);
+      }
+    }
+
+    // Expose refresh function globally for settings page
+    window.refreshHistory = refreshHistoryData;
+
+    function showHistoryRefreshNotification(message) {
+      const toast = document.createElement('div');
+      toast.className = 'fixed top-20 left-4 right-4 bg-green-600 text-white p-3 rounded-lg shadow-lg z-50 transform transition-transform duration-300 text-sm';
+      toast.innerHTML = `
+        <div class="flex items-center space-x-2">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+          </svg>
+          <span>${message}</span>
+        </div>
+      `;
+      toast.style.transform = 'translateY(-100px)';
+      
+      document.body.appendChild(toast);
+      
+      setTimeout(() => {
+        toast.style.transform = 'translateY(0)';
+      }, 100);
+      
+      setTimeout(() => {
+        toast.style.transform = 'translateY(-100px)';
+        setTimeout(() => {
+          if (document.body.contains(toast)) {
+            document.body.removeChild(toast);
+          }
+        }, 300);
+      }, 2000);
+    }
+
+    // Initialize auto-refresh when page loads
+    window.addEventListener('load', () => {
+      initializeAutoRefreshForHistory();
+    });
+
+    document.getElementById('historySearchToggle').addEventListener('click', () => {
+      const input = document.getElementById('historySearchInput');
+      input.classList.toggle('hidden');
+      if (!input.classList.contains('hidden')) input.focus();
+      else { input.value = ''; applyHistoryFilter(); }
+    });
+
+    // Get the appropriate API URL based on current server
+    function initializeConfig() {
+      mylarConfig = new MylarConfig();
+      console.log('Config initialized for history page');
+    }
+    
+    console.log('History API URL:', mylarConfig ? mylarConfig.buildApiUrl('getHistory') : 'Config not yet initialized');
+    console.log('Current hostname:', window.location.hostname);
+    console.log('Using API URL:', mylarConfig ? mylarConfig.getApiUrl() : 'Config not yet initialized');
+    
+    function loadHistory() {
+      if (!mylarConfig) {
+        console.error('Config not initialized');
+        return;
+      }
+      
+      fetch(mylarConfig.buildApiUrl('getHistory'))
+        .then(r => {
+          console.log('History Response status:', r.status);
+          console.log('History Response ok:', r.ok);
+          if (!r.ok) {
+            throw new Error(`HTTP ${r.status}: ${r.statusText}`);
+          }
+          return r.json();
+        })
+      .then(json => {
+        console.log('History Response data:', json);
+        if (json.success === false) {
+          throw new Error(json.error || 'API returned success: false');
+        }
+        allHistory = json.data || [];
+        document.getElementById('historySearchInput').addEventListener('input', applyHistoryFilter);
+        applyHistoryFilter();
+      })
+      .catch(e => { 
+        console.error('History API Error:', e);
+        document.getElementById('historyContent').innerHTML = `
+          <div class="text-center py-8">
+            <div class="text-red-400 text-lg mb-2">❌ Error Loading History</div>
+            <div class="text-[#CCCCCC] text-sm mb-4">${e.message}</div>
+            <button onclick="location.reload()" class="px-4 py-2 bg-[#CCAF45] text-[#1F1F1F] rounded hover:bg-[#B8A040]">
+              Retry
+            </button>
+          </div>
+        `;
+      });
+    }
+
+    function applyHistoryFilter() {
+      const term = document.getElementById('historySearchInput').value.toLowerCase();
+      const filtered = allHistory.filter(h => h.ComicName.toLowerCase().includes(term) || h.Status.toLowerCase().includes(term));
+      renderHistory(filtered);
+    }
+    function renderHistory(items) {
+      const el = document.getElementById('historyContent');
+      if (!items.length) return el.textContent = 'No history entries.';
+      
+      const getStatusColor = (status) => {
+        const statusLower = status.toLowerCase().trim();
+        switch (statusLower) {
+          case 'downloaded': return 'bg-green-700 text-green-200';
+          case 'post processed':
+          case 'post-processed': 
+          case 'postprocessed': return 'bg-green-600 text-green-100';
+          case 'snatched': return 'bg-blue-700 text-blue-200';
+          case 'wanted': return 'bg-[#CCAF45] text-[#1F1F1F]';
+          case 'skipped': return 'bg-gray-600 text-gray-200';
+          case 'failed': return 'bg-red-700 text-red-200';
+          case 'archived': return 'bg-purple-700 text-purple-200';
+          default: return 'bg-[#444444] text-[#ECECEC]';
+        }
+      };
+      
+      // Use the same card style as add.html comic details
+      el.innerHTML = `
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+          ${items.map(h => `
+            <div class="bg-[#2D2D2D] rounded-lg p-4 border border-[#444444] hover:border-[#CCAF45] transition-colors duration-200">
+              <div class="space-y-2">
+                <div class="flex items-start justify-between">
+                  <h4 class="font-semibold text-[#ECECEC] text-sm line-clamp-2 flex-1 pr-2">${h.ComicName}</h4>
+                  <span class="text-xs font-bold px-2 py-1 rounded flex-shrink-0 ${getStatusColor(h.Status)}">${h.Status}</span>
+                </div>
+                <div class="flex items-center justify-between text-xs">
+                  <p class="text-[#CCCCCC]">Issue #${h.Issue_Number || 'Unknown'}</p>
+                  <p class="text-[#999999]">${h.DateAdded}</p>
+                </div>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      `;
+    }
+
+    // Initialize configuration and load history when DOM is ready
+    document.addEventListener('DOMContentLoaded', () => {
+      initializeConfig();
+      loadHistory();
+    });
+  </script>
+</body>
+</html>

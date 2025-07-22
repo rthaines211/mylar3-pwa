@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+  <title>Settings - Mylar3</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23CCAF45'><path d='M12 15a3 3 0 100-6 3 3 0 000 6zm0 0v3m-3-6h3m3 0h3m-3 0v-3'/></svg>">
+  
+  <!-- PWA and iOS Meta Tags -->
+  <link rel="manifest" href="./manifest.json">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Mylar3">
+  <meta name="theme-color" content="#1F1F1F">
+  <link rel="apple-touch-icon" href="icon-192.svg">
+  <link rel="icon" type="image/svg+xml" href="icon-192.svg">
+  
+  <!-- Stylesheets -->
+  <link rel="stylesheet" href="themes.css">
+  <!-- In production, bundle Tailwind locally; this CDN is for dev only -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    // Suppress Tailwind CDN production warning in PWA
+    const originalWarn = console.warn;
+    console.warn = function(...args) {
+      if (args[0] && args[0].includes('cdn.tailwindcss.com should not be used in production')) {
+        return; // Suppress this specific warning
+      }
+      originalWarn.apply(console, args);
+    };
+  </script>
+  <script src="./pwa-utils.js"></script>
+  <script src="./theme-manager.js"></script>
+  <script src="./config.js"></script>
+</head>
+<body class="bg-[#1F1F1F] text-[#ECECEC] min-h-screen flex flex-col">
+  <!-- Top Bar -->
+  <header class="fixed top-0 left-0 right-0 bg-[#1F1F1F] flex items-center justify-center px-4 py-3 border-b border-[#444444] z-50" style="padding-top: calc(0.75rem + env(safe-area-inset-top, 0px));">
+    <h1 class="text-xl font-semibold">Settings</h1>
+  </header>
+
+  <!-- Main Content -->
+  <main class="flex-1 px-4 py-6" style="padding-top: calc(5rem + env(safe-area-inset-top, 0px)); padding-bottom: calc(5rem + env(safe-area-inset-bottom, 0px));">
+
+  <!-- Loading state -->
+  <div id="loading" class="text-center py-8">
+    <p class="text-lg">Settings page is loading...</p>
+  </div>
+
+  <!-- Configuration form (hidden until JS kicks in) -->
+  <form id="settings-form" class="space-y-4 px-4 hidden">
+
+    <div>
+      <label class="block text-sm mb-1" for="input-server-url">Mylar3 Server URL:</label>
+      <input id="input-server-url" type="url" class="w-full p-2 rounded bg-[#2A2A2A]" placeholder="https://your-mylar-host:port" required>
+    </div>
+
+    <div>
+      <label class="block text-sm mb-1" for="input-api-key">Mylar3 API Key:</label>
+      <input id="input-api-key" type="text" class="w-full p-2 rounded bg-[#2A2A2A]" placeholder="(optional)">
+    </div>
+
+    <div>
+      <label class="block text-sm mb-1" for="input-comicvine-key">ComicVine API Key:</label>
+      <input id="input-comicvine-key" type="text" class="w-full p-2 rounded bg-[#2A2A2A]" placeholder="(optional)">
+    </div>
+
+    <button type="submit" class="w-full py-2 rounded bg-[#CCAF45] text-[#1F1F1F] font-semibold">
+      Save &amp; Continue
+    </button>
+  </form>
+
+</main>
+
+
+  <!-- Bottom Navigation -->
+  <nav class="fixed bottom-0 left-0 right-0 bg-[#1F1F1F] border-t border-[#444444]" style="padding-bottom: calc(env(safe-area-inset-bottom, 0px) * 0.5);">
+    <div class="flex justify-around items-center h-16">
+      <a href="index.html" class="flex flex-col items-center justify-center text-[#999999] focus:outline-none focus:text-[#ECECEC]">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+        </svg>
+        <span class="text-xs mt-1 font-medium">Library</span>
+      </a>
+      <a href="add.html" class="flex flex-col items-center justify-center text-[#999999] focus:outline-none focus:text-[#ECECEC]">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+        </svg>
+        <span class="text-xs mt-1">Add</span>
+      </a>
+      <a href="Pull-list.html" class="flex flex-col items-center justify-center text-[#999999] focus:outline-none focus:text-[#ECECEC]">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3M3 11h18M5 21h14a2 2 0 002-2V8H3v11a2 2 0 002 2z"/>
+        </svg>
+        <span class="text-xs mt-1">This Week</span>
+      </a>
+      <a href="history.html" class="flex flex-col items-center justify-center text-[#999999] focus:outline-none focus:text-[#ECECEC]">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+        <span class="text-xs mt-1">History</span>
+      </a>
+      <a href="settings.html" class="flex flex-col items-center justify-center text-[#CCAF45] focus:outline-none focus:text-[#ECECEC]">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+        </svg>
+        <span class="text-xs mt-1">Settings</span>
+      </a>
+    </div>
+  </nav>
+
+  <script>
+document.addEventListener('DOMContentLoaded', () => {
+  // 1. Grab elements
+  const loadingEl = document.getElementById('loading');
+  const formEl    = document.getElementById('settings-form');
+  const urlInput  = document.getElementById('input-server-url');
+  const apiInput  = document.getElementById('input-api-key');
+  const cvInput   = document.getElementById('input-comicvine-key');
+
+  // 2. Load existing config
+  const config = mylarConfig.loadConfiguration();
+
+  // 3. Populate form fields
+  urlInput.value = config.serverUrl   || '';
+  apiInput.value = config.apiKey      || '';
+  cvInput.value  = config.comicvineApiKey || '';
+
+  // 4. Hide loading, show form
+  loadingEl.classList.add('hidden');
+  formEl.classList.remove('hidden');
+
+  // 5. On submit, save & redirect
+  formEl.addEventListener('submit', (e) => {
+    e.preventDefault();
+
+    // Save into localStorage
+    localStorage.setItem('mylarServerUrl', urlInput.value.trim());
+    localStorage.setItem('mylarApiKey',   apiInput.value.trim());
+    localStorage.setItem('comicvineApiKey', cvInput.value.trim());
+
+    // Inform your config class
+    window.dispatchEvent(new CustomEvent('configurationUpdated', {
+      detail: {
+        serverUrl: urlInput.value.trim(),
+        apiKey:   apiInput.value.trim(),
+        comicvineApiKey: cvInput.value.trim()
+      }
+    }));
+
+    // Finally, go home
+    window.location.href = 'index.html';
+  });
+});
+</script>
+
+</body>
+</html>

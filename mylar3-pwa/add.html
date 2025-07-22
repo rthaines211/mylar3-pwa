@@ -1,0 +1,1249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+  <title>Add Comics - Mylar3</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23CCAF45'><path d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 11h-4v4h-2v-4H7v-2h4V7h2v4h4v2z'/></svg>">
+  
+  <!-- PWA and iOS Meta Tags -->
+  <link rel="manifest" href="./manifest.json">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Mylar3">
+  <meta name="theme-color" content="#1F1F1F">
+  <link rel="apple-touch-icon" href="icon-192.svg">
+  <link rel="icon" type="image/svg+xml" href="icon-192.svg">
+  
+  <!-- Stylesheets -->
+  <link rel="stylesheet" href="themes.css">
+  <!-- In production, bundle Tailwind locally; this CDN is for dev only -->
+  <!-- TODO: Replace with local Tailwind build for production -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    // Suppress Tailwind CDN production warning in PWA
+    const originalWarn = console.warn;
+    console.warn = function(...args) {
+      if (args[0] && args[0].includes('cdn.tailwindcss.com should not be used in production')) {
+        return; // Suppress this specific warning
+      }
+      originalWarn.apply(console, args);
+    };
+  </script>
+  <script src="./config.js"></script>
+  <script src="./pwa-utils.js"></script>
+  <script src="./theme-manager.js"></script>
+  
+  <style>
+    .line-clamp-2 {
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    
+    .config-notice {
+      animation: slideDown 0.3s ease-out;
+    }
+    
+    @keyframes slideDown {
+      from {
+        transform: translateY(-100%);
+        opacity: 0;
+      }
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+  </style>
+</head>
+<body class="bg-[#1F1F1F] text-[#ECECEC] min-h-screen flex flex-col">
+  
+  <!-- Top Bar -->
+  <header class="fixed top-0 left-0 right-0 bg-[#1F1F1F] flex items-center justify-center px-4 py-3 border-b border-[#444444] z-50" style="padding-top: calc(0.75rem + env(safe-area-inset-top, 0px));">
+    <h1 class="text-xl font-semibold">Add Comics</h1>
+  </header>
+
+  <!-- Search Bar -->
+  <div class="fixed left-0 right-0 px-4 py-3 border-b z-40 search-container" style="top: calc(4rem + env(safe-area-inset-top, 0px)); background-color: var(--bg-primary); border-color: var(--border-color);">
+    <div class="flex space-x-3">
+      <div class="flex-1">
+        <input id="searchInput" type="text" placeholder="Search for comics to add..." 
+               class="w-full px-4 py-3 search-input" />
+      </div>
+      <button id="searchButton" onclick="performSearch()" class="px-6 py-3 rounded-md transition-colors duration-200 font-medium whitespace-nowrap search-button" style="border: 1px solid var(--accent-primary);">
+        Search
+      </button>
+    </div>
+  </div>
+
+  <!-- Configuration Notice (ComicVine API key needed) -->
+  <div id="configNotice" class="fixed left-0 right-0 bg-yellow-600 text-yellow-100 px-4 py-2 text-sm z-30" style="top: calc(8rem + env(safe-area-inset-top, 0px)); display: none;">
+    <div class="flex items-center justify-between">
+      <span>⚠️ ComicVine API key not configured. Please set your API key in add.html to enable search.</span>
+      <button onclick="hideConfigNotice()" class="ml-2 text-yellow-200 hover:text-white">✕</button>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <main class="flex-1 overflow-auto px-4 py-3" style="padding-top: calc(9rem + env(safe-area-inset-top, 0px)); padding-bottom: calc(3rem + env(safe-area-inset-bottom, 0px) * 0.5);">
+    <div id="searchResults" class="space-y-3">
+      <div class="text-center py-8" style="color: var(--text-secondary);">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="color: var(--text-tertiary);">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+        </svg>
+        <h3 class="text-lg font-medium mb-2" style="color: var(--text-primary);">Search for Comics</h3>
+        <p class="text-sm" style="color: var(--text-secondary);">Enter a comic series name above to search for comics to add to your library.</p>
+      </div>
+    </div>
+    
+    <div id="loadingIndicator" class="hidden text-center py-8">
+      <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-[#CCAF45]"></div>
+      <p class="mt-2" style="color: var(--text-secondary);">Searching...</p>
+    </div>
+  </main>
+
+  <!-- Bottom Navigation -->
+  <nav class="fixed bottom-0 left-0 right-0 bg-[#1F1F1F] border-t border-[#444444]" style="padding-bottom: calc(env(safe-area-inset-bottom, 0px) * 0.5);">
+    <div class="flex justify-around items-center h-16">
+      <a href="index.html" class="flex flex-col items-center justify-center text-[#999999] focus:outline-none focus:text-[#ECECEC]">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+      </svg>
+      <span class="text-xs mt-1 font-medium">Library</span>
+    </a>
+    <a href="add.html" class="flex flex-col items-center justify-center text-[#CCAF45] focus:outline-none focus:text-[#ECECEC]">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+      </svg>
+      <span class="text-xs mt-1">Add</span>
+    </a>
+    <a href="Pull-list.html" class="flex flex-col items-center justify-center text-[#999999] focus:outline-none focus:text-[#ECECEC]">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3M3 11h18M5 21h14a2 2 0 002-2V8H3v11a2 2 0 002 2z"/>
+      </svg>
+      <span class="text-xs mt-1">This Week</span>
+    </a>
+    <a href="history.html" class="flex flex-col items-center justify-center text-[#999999] focus:outline-none focus:text-[#ECECEC]">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+      </svg>
+      <span class="text-xs mt-1">History</span>
+    </a>
+    <a href="settings.html" class="flex flex-col items-center justify-center text-[#999999] focus:outline-none focus:text-[#ECECEC]">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+      </svg>
+      <span class="text-xs mt-1">Settings</span>
+    </a>
+    </div>
+  </nav>
+
+  <script>
+    // Configuration management - get API keys from settings
+    let mylarConfig;
+    const COMICVINE_BASE_URL = 'https://comicvine.gamespot.com/api';
+    const API_RATE_LIMIT_MS = 2000; // 2 seconds between requests
+    let searchTimeout;
+
+    // Initialize configuration
+    function initializeConfig() {
+      mylarConfig = new MylarConfig();
+      
+      // Listen for configuration updates from settings page
+      window.addEventListener('configurationUpdated', (event) => {
+        mylarConfig = new MylarConfig();
+        updateConfigNotice();
+      });
+      
+      updateConfigNotice();
+    }
+    
+    // Update the configuration notice based on current config
+    function updateConfigNotice() {
+      const configNotice = document.getElementById('config-notice');
+      const comicvineKey = mylarConfig.getComicVineApiKey();
+      
+      if (!comicvineKey || comicvineKey === mylarConfig.config.defaultComicvineKey) {
+        configNotice.style.display = 'block';
+        configNotice.querySelector('span').textContent = 
+          '⚠️ ComicVine API key not configured. Please set your API key in Settings to enable search.';
+      } else {
+        configNotice.style.display = 'none';
+      }
+    }
+
+    // Utility function to safely format dates
+    function formatDate(dateString) {
+      if (!dateString) return 'Unknown';
+      
+      try {
+        const date = new Date(dateString);
+        // Check if date is valid
+        if (isNaN(date.getTime())) {
+          return 'Unknown';
+        }
+        return date.toLocaleDateString();
+      } catch (error) {
+        console.log('Date parsing error:', error);
+        return 'Unknown';
+      }
+    }
+
+    // Check if ComicVine API key is configured
+    function checkApiKeyConfiguration() {
+      const comicvineKey = mylarConfig.getComicVineApiKey();
+      if (!comicvineKey || comicvineKey === mylarConfig.config.defaultComicvineKey) {
+        document.getElementById('configNotice').style.display = 'block';
+        return false;
+      }
+      document.getElementById('configNotice').style.display = 'none';
+      return true;
+    }
+
+    function hideConfigNotice() {
+      document.getElementById('configNotice').style.display = 'none';
+    }
+
+    // Search functionality - triggered by button press
+    document.getElementById('searchInput').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        performSearch();
+      }
+    });
+
+    function performSearch() {
+      const query = document.getElementById('searchInput').value.trim();
+      
+      if (query.length < 2) {
+        showError('Please enter at least 2 characters to search.');
+        return;
+      }
+      
+      // Clear cached results for new search
+      window.cachedSearchResults = null;
+      window.currentPagination = null;
+      
+      // Reset to first page for new search
+      performComicVineSearch(query, 0);
+    }
+
+    // Enhanced ComicVine search function with client-side pagination
+    async function performComicVineSearch(query, pageNumber = 0) {
+      showLoading();
+      
+      // Check if API key is configured
+      if (!checkApiKeyConfiguration()) {
+        showError('ComicVine API key not configured. Please set up your API key.');
+        hideLoading();
+        return;
+      }
+      
+      try {
+        // If we already have results cached and we're just changing pages, use cached results
+        if (window.cachedSearchResults && window.cachedSearchResults.query === query && pageNumber > 0) {
+          displayCachedResults(pageNumber);
+          return;
+        }
+        
+        // Step 1: Capture & sanitize user input
+        const sanitizedQuery = sanitizeSearchQuery(query);
+        
+        // Step 2: Tokenize into keywords
+        const terms = tokenizeQuery(sanitizedQuery);
+        
+        if (terms.length === 0) {
+          showError('Please enter a valid search term.');
+          hideLoading();
+          return;
+        }
+        
+        // Use the original /search endpoint which was working
+        // Build a better query string from our processed terms
+        const searchQuery = terms.join(' ');
+        
+        // Step 4: Assemble comprehensive API URL with enhanced field list
+        // Fetch more results (up to 100) and handle pagination client-side
+        const fieldList = 'id,name,start_year,site_detail_url,count_of_issues,image,publisher,deck,description,first_issue,last_issue,aliases';
+        const comicvineKey = mylarConfig.getComicVineApiKey();
+        const searchUrl = `${COMICVINE_BASE_URL}/search/?api_key=${comicvineKey}&format=jsonp&json_callback=handleComicVineResults&query=${encodeURIComponent(searchQuery)}&resources=volume&field_list=${fieldList}&limit=100`;
+        
+        // Store search context for pagination
+        window.currentSearchContext = {
+          query: query,
+          sanitizedQuery: sanitizedQuery,
+          terms: terms,
+          searchQuery: searchQuery,
+          pageNumber: pageNumber
+        };
+        
+        // Create a script tag to make JSONP request
+        const script = document.createElement('script');
+        script.src = searchUrl;
+        
+        // Set up a timeout for the request
+        const timeoutId = setTimeout(() => {
+          if (script.parentNode) {
+            document.head.removeChild(script);
+          }
+          hideLoading();
+          showError('Search request timed out. Please try again.');
+        }, 15000);
+        
+        // Store the timeout ID and query for the callback
+        window.currentSearchTimeout = timeoutId;
+        window.currentSearchQuery = query;
+        
+        document.head.appendChild(script);
+        
+      } catch (error) {
+        console.error('ComicVine search error:', error);
+        hideLoading();
+        showError('Search failed. Please try again.');
+      }
+    }
+    
+    // Step 1: Sanitize search query
+    function sanitizeSearchQuery(query) {
+      // Trim whitespace and convert to lowercase
+      let sanitized = query.trim().toLowerCase();
+      
+      // Strip out common noise words and characters
+      const stopWords = ['and', 'the', '&', '-', '/', ';', ':', ',', 'vol', 'volume'];
+      
+      // Remove stop words (but preserve them in quoted phrases)
+      stopWords.forEach(stop => {
+        const regex = new RegExp(`\\b${stop}\\b`, 'g');
+        sanitized = sanitized.replace(regex, ' ');
+      });
+      
+      // Clean up extra spaces and special characters
+      sanitized = sanitized.replace(/[^\w\s.#]/g, ' ').replace(/\s+/g, ' ').trim();
+      
+      return sanitized;
+    }
+    
+    // Step 2: Tokenize query into keywords
+    function tokenizeQuery(query) {
+      return query.split(/\s+/).filter(term => term.length > 0);
+    }
+    
+    // Step 3: Build ComicVine filter string
+    function buildFilterString(terms) {
+      if (terms.length === 0) return '';
+      
+      // First term without prefix
+      let filterString = terms[0];
+      
+      // Subsequent terms with "name:" prefix
+      for (let i = 1; i < terms.length; i++) {
+        filterString += `,name:${terms[i]}`;
+      }
+      
+      return filterString;
+    }
+    
+    // Enhanced callback function for JSONP response with client-side pagination
+    window.handleComicVineResults = function(data) {
+      // Clean up
+      clearTimeout(window.currentSearchTimeout);
+      
+      // More thorough script cleanup
+      const scripts = document.querySelectorAll('script[src*="comicvine.gamespot.com"]');
+      scripts.forEach(script => {
+        try {
+          if (script.parentNode) {
+            script.parentNode.removeChild(script);
+          }
+        } catch (e) {
+          console.log('Script cleanup error:', e);
+        }
+      });
+      
+      hideLoading();
+      
+      
+      if (data.results && data.results.length > 0) {
+        // Sort results by start_year (newest to oldest)
+        const sortedResults = data.results.sort((a, b) => {
+          const yearA = parseInt(a.start_year) || 0;
+          const yearB = parseInt(b.start_year) || 0;
+          return yearB - yearA; // Newest first
+        });
+        
+        // Process each result with enhanced data processing
+        const processedResults = sortedResults.map(volume => {
+          return {
+            ...volume,
+            // Parse description HTML and extract clean text
+            cleanDescription: volume.description ? 
+              volume.description.replace(/<[^>]*>/g, '').replace(/&[^;]+;/g, ' ').trim() : '',
+            // Parse deck HTML for summary
+            cleanDeck: volume.deck ? 
+              volume.deck.replace(/<[^>]*>/g, '').replace(/&[^;]+;/g, ' ').trim() : '',
+            // Extract aliases if available
+            aliasesArray: volume.aliases ? volume.aliases.split('\n').filter(alias => alias.trim()) : [],
+            // Enhanced publisher info
+            publisherName: volume.publisher ? volume.publisher.name : 'Unknown Publisher',
+            // Better image handling
+            thumbUrl: volume.image ? (volume.image.thumb_url || volume.image.small_url || volume.image.medium_url) : null,
+            // Issue count handling
+            issueCount: volume.count_of_issues || 'Unknown',
+            // First/last issue dates
+            firstIssueDate: volume.first_issue ? volume.first_issue.cover_date : null,
+            lastIssueDate: volume.last_issue ? volume.last_issue.cover_date : null
+          };
+        });
+        
+        // Cache results for client-side pagination
+        window.cachedSearchResults = {
+          query: window.currentSearchContext.query,
+          results: processedResults,
+          totalResults: data.number_of_total_results || processedResults.length
+        };
+        
+        // Display the first page of results
+        displayPaginatedResults(processedResults, 0);
+      } else {
+        showNoResults(window.currentSearchQuery);
+      }
+    };
+    
+    // Global error handler for JSONP
+    window.handleComicVineError = function(error) {
+      clearTimeout(window.currentSearchTimeout);
+      hideLoading();
+      showError('ComicVine API error. Please try again.');
+    };
+
+    // Initialize the page
+    document.addEventListener('DOMContentLoaded', () => {
+      initializeConfig();
+      showEmptyState();
+      checkApiKeyConfiguration();
+      
+      // Add history state management to prevent browser back button issues
+      if (window.history && window.history.pushState) {
+        // Push an initial state
+        window.history.pushState({ page: 'add-comics' }, 'Add Comics', window.location.href);
+        
+        // Handle browser back button
+        window.addEventListener('popstate', function(event) {
+          console.log('Browser back button pressed'); // Debug log
+          // Always stay on the add page and show the current state
+          window.history.pushState({ page: 'add-comics' }, 'Add Comics', window.location.href);
+          
+          // If we have cached results, show them, otherwise show empty state
+          if (window.cachedSearchResults && window.cachedSearchResults.results && window.cachedSearchResults.results.length > 0) {
+            const currentPage = window.currentPagination ? window.currentPagination.currentPage : 0;
+            displayPaginatedResults(window.cachedSearchResults.results, currentPage);
+          } else {
+            showEmptyState();
+          }
+        });
+      }
+    });
+    // Display paginated results with client-side pagination
+    function displayPaginatedResults(allResults, currentPage) {
+      const resultsPerPage = 20;
+      const startIndex = currentPage * resultsPerPage;
+      const endIndex = startIndex + resultsPerPage;
+      const currentResults = allResults.slice(startIndex, endIndex);
+      const totalPages = Math.ceil(allResults.length / resultsPerPage);
+      
+      // Set app state to search results
+      window.appState = {
+        view: 'search-results',
+        currentPage: currentPage,
+        totalPages: totalPages
+      };
+      
+      // Create pagination controls
+      const paginationHtml = totalPages > 1 ? `
+        <div class="mb-4 flex justify-between items-center">
+          <div class="flex items-center space-x-4">
+            ${currentPage > 0 ? `
+              <button onclick="loadPreviousPage()" class="pagination-button">
+                Previous
+              </button>
+            ` : ''}
+            
+            ${currentPage < totalPages - 1 ? `
+              <button onclick="loadNextPage()" class="pagination-button">
+                Next
+              </button>
+            ` : ''}
+          </div>
+          
+          <span class="text-xs" style="color: var(--text-secondary);">
+            Page ${currentPage + 1} of ${totalPages} (${allResults.length} total results)
+          </span>
+        </div>
+      ` : '';
+      
+      const resultsHtml = `
+        <div class="mb-3">
+          <div class="flex justify-between items-center mb-2">
+            <div class="text-sm" style="color: var(--text-secondary);">
+              Found ${allResults.length} results
+            </div>
+            <div class="text-xs" style="color: var(--text-tertiary);">
+              Sorted by start year (newest first)
+            </div>
+          </div>
+        </div>
+        
+        ${paginationHtml}
+        
+        <div class="space-y-2">
+      ` + currentResults.map(volume => `
+        <div onclick="getVolumeDetails('${volume.id}', '${volume.name.replace(/'/g, "\\'")}', '${volume.publisherName.replace(/'/g, "\\'")}'); event.stopPropagation();"
+             class="bg-[#2D2D2D] rounded-lg p-3 border border-[#444444] hover:border-[#CCAF45] cursor-pointer transition-colors duration-200">
+          <div class="flex items-start justify-between">
+            <div class="flex-1 min-w-0 pr-4">
+              <h3 class="font-semibold mb-1 text-sm leading-tight break-words" style="color: var(--text-primary);">${volume.name || 'Unknown Title'}</h3>
+              <p class="text-xs mb-2" style="color: var(--text-secondary);">${volume.publisherName}</p>
+            </div>
+            <div class="flex-shrink-0 text-right">
+              <div class="text-xs mb-1">
+                <span style="color: var(--text-tertiary);">Year:</span>
+                <span class="font-medium ml-1" style="color: var(--accent-primary);">${volume.start_year || 'Unknown'}</span>
+              </div>
+              <div class="text-xs">
+                <span style="color: var(--text-tertiary);">Issues:</span>
+                <span class="ml-1" style="color: var(--text-primary);">${volume.issueCount}</span>
+              </div>
+            </div>
+          </div>
+          
+          ${volume.firstIssueDate || volume.lastIssueDate ? `
+          <div class="grid grid-cols-2 gap-2 mt-2 text-xs">
+            ${volume.firstIssueDate ? `
+            <div>
+              <span style="color: var(--text-tertiary);">First:</span>
+              <span class="ml-1" style="color: var(--text-primary);">${formatDate(volume.firstIssueDate)}</span>
+            </div>
+            ` : ''}
+            ${volume.lastIssueDate ? `
+            <div>
+              <span style="color: var(--text-tertiary);">Last:</span>
+              <span class="ml-1" style="color: var(--text-primary);">${formatDate(volume.lastIssueDate)}</span>
+            </div>
+            ` : ''}
+          </div>
+          ` : ''}
+          
+          ${volume.aliasesArray.length > 0 ? `
+          <div class="mt-2">
+            <span class="text-xs" style="color: var(--text-tertiary);">Also known as:</span>
+            <p class="text-xs line-clamp-1" style="color: var(--text-secondary);">${volume.aliasesArray.slice(0, 3).join(', ')}</p>
+          </div>
+          ` : ''}
+        </div>`).join('') + `
+        </div>
+      `;
+      
+      document.getElementById('searchResults').innerHTML = resultsHtml;
+      
+      // Store current pagination state
+      window.currentPagination = {
+        currentPage: currentPage,
+        totalPages: totalPages,
+        resultsPerPage: resultsPerPage
+      };
+    }
+    
+    // Function to display cached results for pagination
+    function displayCachedResults(pageNumber) {
+      if (window.cachedSearchResults) {
+        displayPaginatedResults(window.cachedSearchResults.results, pageNumber);
+      }
+    }
+    
+    // Client-side pagination functions
+    function loadNextPage() {
+      if (window.currentPagination && window.currentPagination.currentPage < window.currentPagination.totalPages - 1) {
+        const nextPage = window.currentPagination.currentPage + 1;
+        displayCachedResults(nextPage);
+      }
+    }
+    
+    function loadPreviousPage() {
+      if (window.currentPagination && window.currentPagination.currentPage > 0) {
+        const prevPage = window.currentPagination.currentPage - 1;
+        displayCachedResults(prevPage);
+      }
+    }
+
+    function showEmptyState() {
+      // Set app state to empty
+      window.appState = {
+        view: 'empty-state'
+      };
+      
+      document.getElementById('searchResults').innerHTML = `
+        <div class="text-center py-8" style="color: var(--text-secondary);">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="color: var(--text-tertiary);">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+          </svg>
+          <h3 class="text-lg font-medium mb-2" style="color: var(--text-primary);">Advanced Comic Search</h3>
+          <p class="text-sm mb-3" style="color: var(--text-secondary);">Enter a comic series name above and click "Search" to find comics to add to your library.</p>
+          <div class="text-xs space-y-1 max-w-md mx-auto" style="color: var(--text-tertiary);">
+            <p>• <strong>Smart filtering:</strong> Automatically removes stop words and normalizes search terms</p>
+            <p>• <strong>Comprehensive results:</strong> Up to 100 results per page with pagination</p>
+            <p>• <strong>Rich metadata:</strong> Publisher info, issue counts, release dates, and descriptions</p>
+            <p>• <strong>Direct links:</strong> Quick access to ComicVine pages for more details</p>
+          </div>
+          <div class="mt-4 text-xs" style="color: var(--text-tertiary);">
+            <p>Examples: "Fantastic Four", "Batman Detective Comics", "Spider-Man Amazing"</p>
+          </div>
+        </div>
+      `;
+    }
+
+    function showLoading() {
+      document.getElementById('loadingIndicator').classList.remove('hidden');
+      const searchButton = document.getElementById('searchButton');
+      searchButton.disabled = true;
+      searchButton.innerHTML = '<div class="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-[#1F1F1F]"></div>';
+    }
+
+    function hideLoading() {
+      document.getElementById('loadingIndicator').classList.add('hidden');
+      const searchButton = document.getElementById('searchButton');
+      searchButton.disabled = false;
+      searchButton.innerHTML = 'Search';
+    }
+
+    function showNoResults(query) {
+      document.getElementById('searchResults').innerHTML = `
+        <div class="text-center py-8" style="color: var(--text-secondary);">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="color: var(--text-tertiary);">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 12h6m-6 4h6m6-1a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+          <h3 class="text-lg font-medium mb-2" style="color: var(--text-primary);">No Results Found</h3>
+          <p class="text-sm" style="color: var(--text-secondary);">No comics found for "${query}". Try a different search term.</p>
+        </div>
+      `;
+    }
+
+    function showError(message) {
+      document.getElementById('searchResults').innerHTML = `
+        <div class="text-center py-8" style="color: var(--text-secondary);">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="color: var(--error-color);">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+          <h3 class="text-lg font-medium mb-2" style="color: var(--text-primary);">Error</h3>
+          <p class="text-sm" style="color: var(--text-secondary);">${message}</p>
+        </div>
+      `;
+    }
+
+    function showMessage(message, type) {
+      // Remove existing message if any
+      const existingMessage = document.getElementById('tempMessage');
+      if (existingMessage) {
+        existingMessage.remove();
+      }
+      
+      const colors = {
+        success: 'bg-green-600',
+        error: 'bg-red-600',
+        info: 'bg-blue-600'
+      };
+      
+      const toast = document.createElement('div');
+      toast.id = 'tempMessage';
+      toast.className = `fixed top-20 left-4 right-4 ${colors[type]} text-white p-4 rounded-lg shadow-lg z-50 transform transition-transform duration-300 max-h-96 overflow-y-auto`;
+      
+      // Handle multi-line messages
+      if (message.includes('\n')) {
+        toast.innerHTML = `<div class="whitespace-pre-line text-sm">${message}</div>`;
+      } else {
+        toast.innerHTML = `<div class="text-sm">${message}</div>`;
+      }
+      
+      toast.style.transform = 'translateY(-100px)';
+      
+      document.body.appendChild(toast);
+      
+      setTimeout(() => {
+        toast.style.transform = 'translateY(0)';
+      }, 100);
+      
+      setTimeout(() => {
+        toast.style.transform = 'translateY(-100px)';
+        setTimeout(() => {
+          if (document.body.contains(toast)) {
+            document.body.removeChild(toast);
+          }
+        }, 300);
+      }, type === 'info' ? 8000 : 3000); // Info messages stay longer
+    }
+
+    // Enhanced volume details function - Following Mylar's multi-step approach
+    async function getVolumeDetails(volumeId, seriesName, publisher) {
+      showLoading();
+      
+      // Store the current app state before showing details
+      window.appState = {
+        view: 'volume-details',
+        volumeId: volumeId,
+        seriesName: seriesName,
+        publisher: publisher
+      };
+      
+      try {
+        // Step 2: Follow-up volume detail call with comprehensive field list (like Mylar's pulldetails)
+        const volumeFieldList = 'name,count_of_issues,issues.id,issues.issue_number,issues.cover_date,issues.name,issues.image,issues.description,issues.deck,issues.store_date,start_year,site_detail_url,image,publisher,description,first_issue,deck,aliases,last_issue';
+        const comicvineKey = mylarConfig.getComicVineApiKey();
+        const volumeUrl = `${COMICVINE_BASE_URL}/volume/4050-${volumeId}/?api_key=${comicvineKey}&format=jsonp&json_callback=handleVolumeDetails&field_list=${volumeFieldList}`;
+        
+        // Store context for the callback
+        window.currentVolumeContext = { volumeId, seriesName, publisher };
+        
+        // Set up timeout
+        const timeoutId = setTimeout(() => {
+          hideLoading();
+          showError('Volume details request timed out. Please try again.');
+        }, 15000);
+        
+        window.currentVolumeTimeout = timeoutId;
+        
+        const script = document.createElement('script');
+        script.src = volumeUrl;
+        document.head.appendChild(script);
+        
+      } catch (error) {
+        console.error('Error getting volume details:', error);
+        hideLoading();
+        showError('Failed to load volume details. Please try again.');
+      }
+    }
+    
+    // Global callback for volume details
+    window.handleVolumeDetails = function(data) {
+      // Clean up
+      clearTimeout(window.currentVolumeTimeout);
+      const scripts = document.querySelectorAll('script[src*="comicvine.gamespot.com"]');
+      scripts.forEach(script => {
+        if (script.parentNode) {
+          script.parentNode.removeChild(script);
+        }
+      });
+      
+      if (data.results) {
+        const volumeData = data.results;
+        
+        // Process the volume data like Mylar does
+        const processedVolume = {
+          ...volumeData,
+          id: window.currentVolumeContext.volumeId, // Ensure ID is available for add button
+          cleanDescription: volumeData.description ? 
+            volumeData.description.replace(/<[^>]*>/g, '').replace(/&[^;]+;/g, ' ').trim() : '',
+          cleanDeck: volumeData.deck ? 
+            volumeData.deck.replace(/<[^>]*>/g, '').replace(/&[^;]+;/g, ' ').trim() : '',
+          aliasesArray: volumeData.aliases ? volumeData.aliases.split('\n').filter(alias => alias.trim()) : [],
+          publisherName: volumeData.publisher ? volumeData.publisher.name : 'Unknown Publisher',
+          highResImage: volumeData.image ? 
+            (volumeData.image.super_url || volumeData.image.original_url || volumeData.image.large_url || volumeData.image.medium_url) : null,
+          thumbUrl: volumeData.image ? 
+            (volumeData.image.thumb_url || volumeData.image.small_url) : null
+        };
+        
+        // Step 3: Get paginated issues list if embedded issues are truncated
+        if (volumeData.issues && volumeData.issues.length > 0) {
+          // We have embedded issues, but they might not have image data
+          const hasImageData = volumeData.issues.some(issue => issue.image);
+          
+          if (hasImageData) {
+            hideLoading();
+            displayVolumeDetails(processedVolume, volumeData.issues);
+          } else {
+            // Embedded issues don't have image data, fetch them separately
+            fetchAllIssuesForVolume(window.currentVolumeContext.volumeId, processedVolume);
+          }
+        } else {
+          // Need to fetch issues separately with pagination
+          fetchAllIssuesForVolume(window.currentVolumeContext.volumeId, processedVolume);
+        }
+      } else {
+        hideLoading();
+        showError('No volume details found.');
+      }
+    };
+
+    // Fetch all issues with pagination - Following Mylar's approach
+    async function fetchAllIssuesForVolume(volumeId, volumeData) {
+      const allIssues = [];
+      let offset = 0;
+      const limit = 100;
+      let hasMore = true;
+      
+      // Keep track of how many requests we're making
+      let currentRequest = 0;
+      
+      while (hasMore) {
+        try {
+          const issues = await fetchIssuesPage(volumeId, offset, limit, currentRequest);
+          
+          if (issues.length === 0) {
+            hasMore = false;
+          } else {
+            allIssues.push(...issues);
+            offset += limit;
+            
+            // If we got fewer than the limit, we're done
+            if (issues.length < limit) {
+              hasMore = false;
+            }
+          }
+          
+          currentRequest++;
+          
+          // Respect API rate limits
+          if (hasMore) {
+            await new Promise(resolve => setTimeout(resolve, 1000));
+          }
+          
+        } catch (error) {
+          console.error('Error fetching issues page:', error);
+          hasMore = false;
+        }
+      }
+      
+      hideLoading();
+      displayVolumeDetails(volumeData, allIssues);
+    }
+    
+    // Fetch a single page of issues
+    function fetchIssuesPage(volumeId, offset, limit, requestId) {
+      return new Promise((resolve, reject) => {
+        const issuesFieldList = 'id,issue_number,cover_date,name,image,description,deck,store_date,date_added,date_last_updated';
+        const comicvineKey = mylarConfig.getComicVineApiKey();
+        const issuesUrl = `${COMICVINE_BASE_URL}/issues/?api_key=${comicvineKey}&format=jsonp&json_callback=handleIssuesPage_${requestId}&filter=volume:${volumeId}&field_list=${issuesFieldList}&limit=${limit}&offset=${offset}&sort=issue_number:desc`;
+        
+        // Set up unique callback for this request
+        window[`handleIssuesPage_${requestId}`] = function(data) {
+          // Clean up this specific callback and script
+          delete window[`handleIssuesPage_${requestId}`];
+          const scripts = document.querySelectorAll(`script[src*="handleIssuesPage_${requestId}"]`);
+          scripts.forEach(script => {
+            if (script.parentNode) {
+              script.parentNode.removeChild(script);
+            }
+          });
+          
+          if (data.results) {
+            resolve(data.results);
+          } else {
+            resolve([]);
+          }
+        };
+        
+        const script = document.createElement('script');
+        script.src = issuesUrl;
+        document.head.appendChild(script);
+        
+        // Set up timeout for this specific request
+        setTimeout(() => {
+          if (window[`handleIssuesPage_${requestId}`]) {
+            delete window[`handleIssuesPage_${requestId}`];
+            reject(new Error('Request timeout'));
+          }
+        }, 10000);
+      });
+    }
+
+    // Display enhanced volume details with paginated issues - Mylar-style comprehensive view
+    function displayVolumeDetails(volumeData, issues) {
+      // Process issues like Mylar does
+      const processedIssues = issues.map(issue => ({
+        ...issue,
+        cleanName: issue.name ? issue.name.replace(/<[^>]*>/g, '').trim() : null,
+        cleanDescription: issue.description ? issue.description.replace(/<[^>]*>/g, '').trim() : null,
+        formattedCoverDate: formatDate(issue.cover_date),
+        formattedStoreDate: issue.store_date ? formatDate(issue.store_date) : null,
+        // Better image URL handling - try multiple sizes and log for debugging
+        thumbUrl: issue.image ? (
+          issue.image.thumb_url || 
+          issue.image.small_url || 
+          issue.image.medium_url || 
+          issue.image.icon_url ||
+          issue.image.screen_url ||
+          issue.image.original_url
+        ) : null
+      })).sort((a, b) => {
+        // Sort by issue number descending (newest first)
+        const issueA = parseFloat(a.issue_number) || 0;
+        const issueB = parseFloat(b.issue_number) || 0;
+        return issueB - issueA;
+      });
+      
+      // Store issues globally for pagination
+      window.currentVolumeIssues = processedIssues;
+      window.currentVolumeData = volumeData;
+      
+      // Display first page of issues
+      displayVolumeIssuesPage(0);
+    }
+    
+    // Display a specific page of issues
+    function displayVolumeIssuesPage(pageNumber) {
+      const volumeData = window.currentVolumeData;
+      const processedIssues = window.currentVolumeIssues;
+      const issuesPerPage = 10;
+      const startIndex = pageNumber * issuesPerPage;
+      const endIndex = startIndex + issuesPerPage;
+      const currentIssues = processedIssues.slice(startIndex, endIndex);
+      const totalPages = Math.ceil(processedIssues.length / issuesPerPage);
+      
+      // Store current pagination state
+      window.currentIssuesPagination = {
+        currentPage: pageNumber,
+        totalPages: totalPages,
+        issuesPerPage: issuesPerPage
+      };
+      
+      // Create pagination controls for issues
+      const issuesPaginationHtml = totalPages > 1 ? `
+        <div class="mb-4 flex justify-between items-center">
+          <div class="flex items-center space-x-4">
+            ${pageNumber > 0 ? `
+              <button onclick="displayVolumeIssuesPage(${pageNumber - 1})" class="pagination-button">
+                Previous
+              </button>
+            ` : ''}
+            
+            ${pageNumber < totalPages - 1 ? `
+              <button onclick="displayVolumeIssuesPage(${pageNumber + 1})" class="pagination-button">
+                Next
+              </button>
+            ` : ''}
+          </div>
+          
+          <span class="text-xs" style="color: var(--text-secondary);">
+            Page ${pageNumber + 1} of ${totalPages} (${processedIssues.length} issues)
+          </span>
+        </div>
+      ` : '';
+      
+      const issuesHtml = `
+        <div class="mb-6">
+          <div class="flex items-start space-x-4 mb-6">
+            ${volumeData.highResImage ? 
+              `<img src="${volumeData.highResImage}" alt="${volumeData.name}" class="w-24 h-32 object-cover rounded-lg border border-[#444444]" />` : 
+              '<div class="w-24 h-32 bg-[#444444] rounded-lg flex items-center justify-center"><svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-[#666666]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg></div>'
+            }
+            <div class="flex-1">
+              <h2 class="text-2xl font-bold mb-2" style="color: var(--text-primary);">${volumeData.name}</h2>
+              <p class="text-lg mb-3" style="color: var(--text-secondary); font-weight: 500;">${volumeData.publisherName}</p>
+              
+              <div class="grid grid-cols-2 gap-4 mb-4 text-sm">
+                <div>
+                  <span style="color: var(--text-tertiary);">Start Year:</span>
+                  <span class="font-medium ml-2" style="color: var(--accent-primary);">${volumeData.start_year || 'Unknown'}</span>
+                </div>
+                <div>
+                  <span style="color: var(--text-tertiary);">Total Issues:</span>
+                  <span class="ml-2 font-semibold" style="color: var(--text-primary);">${processedIssues.length}</span>
+                </div>
+                ${volumeData.first_issue && volumeData.first_issue.cover_date ? `
+                <div>
+                  <span style="color: var(--text-tertiary);">First Issue:</span>
+                  <span class="ml-2" style="color: var(--text-primary);">${formatDate(volumeData.first_issue.cover_date)}</span>
+                </div>
+                ` : ''}
+                ${volumeData.last_issue && volumeData.last_issue.cover_date ? `
+                <div>
+                  <span style="color: var(--text-tertiary);">Last Issue:</span>
+                  <span class="ml-2" style="color: var(--text-primary);">${formatDate(volumeData.last_issue.cover_date)}</span>
+                </div>
+                ` : ''}
+              </div>
+              
+              <div class="flex mb-4">
+                <button onclick="addComicVineSeries('${volumeData.id}', '${volumeData.name.replace(/'/g, "\\'")}', '${volumeData.publisherName.replace(/'/g, "\\'")}');" 
+                        class="${volumeData.id ? 'add-series-button' : 'add-series-button-disabled'}"
+                        ${!volumeData.id ? 'disabled title="No Comic ID available - cannot add to library"' : ''}>
+                  ${volumeData.id ? 'Add Series' : 'No ID Available'}
+                </button>
+              </div>
+            </div>
+          </div>
+          
+          ${volumeData.cleanDeck ? `
+          <div class="mb-4">
+            <h3 class="text-sm font-medium mb-2" style="color: var(--text-secondary); font-weight: 600;">Summary</h3>
+            <p class="text-sm leading-relaxed" style="color: var(--text-primary);">${volumeData.cleanDeck}</p>
+          </div>
+          ` : ''}
+          
+          ${volumeData.cleanDescription ? `
+          <div class="mb-4">
+            <h3 class="text-sm font-medium mb-2" style="color: var(--text-secondary); font-weight: 600;">Description</h3>
+            <p class="text-sm leading-relaxed" style="color: var(--text-primary);">${volumeData.cleanDescription}</p>
+          </div>
+          ` : ''}
+          
+          ${volumeData.aliasesArray.length > 0 ? `
+          <div class="mb-4">
+            <h3 class="text-sm font-medium mb-2" style="color: var(--text-secondary); font-weight: 600;">Also Known As</h3>
+            <div class="flex flex-wrap gap-2">
+              ${volumeData.aliasesArray.map(alias => `<span class="px-2 py-1 rounded text-xs" style="background-color: var(--bg-tertiary); color: var(--text-primary);">${alias}</span>`).join('')}
+            </div>
+          </div>
+          ` : ''}
+        </div>
+        
+        <div class="mb-4">
+          <h3 class="text-lg font-semibold mb-3" style="color: var(--text-primary);">Issues (${processedIssues.length})</h3>
+        </div>
+        
+        ${issuesPaginationHtml}
+        
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+          ${currentIssues.map(issue => `
+            <div class="bg-[#2D2D2D] rounded-lg p-3 border border-[#444444] hover:border-[#CCAF45] transition-colors duration-200">
+              <div class="flex items-start space-x-3">
+                ${issue.thumbUrl ? 
+                  `<img src="${issue.thumbUrl}" alt="Issue #${issue.issue_number}" class="w-12 h-16 object-cover rounded border border-[#444444]" 
+                        onerror="console.log('Image failed to load:', this.src); this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+                   <div class="w-12 h-16 bg-[#444444] rounded flex items-center justify-center" style="display: none;">
+                     <span class="text-xs text-[#666666] font-medium">#${issue.issue_number || '?'}</span>
+                   </div>` : 
+                  `<div class="w-12 h-16 bg-[#444444] rounded flex items-center justify-center">
+                     <span class="text-xs text-[#666666] font-medium">#${issue.issue_number || '?'}</span>
+                   </div>`
+                }
+                <div class="flex-1 min-w-0">
+                  <h4 class="font-semibold text-sm mb-1" style="color: var(--text-primary);">Issue #${issue.issue_number || 'Unknown'}</h4>
+                  ${issue.cleanName ? `<p class="text-xs mb-1 truncate" style="color: var(--text-secondary);">${issue.cleanName}</p>` : ''}
+                  ${issue.formattedStoreDate ? `<p class="text-xs mb-1" style="color: var(--text-tertiary);">${issue.formattedStoreDate}</p>` : ''}
+                </div>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+        
+        ${issuesPaginationHtml}
+      `;
+      
+      document.getElementById('searchResults').innerHTML = issuesHtml;
+    }
+
+    // Enhanced back navigation with better state management
+    function goBackToSearch() {
+      console.log('goBackToSearch called'); // Debug log
+      console.log('Cached results:', window.cachedSearchResults); // Debug log
+      console.log('Current pagination:', window.currentPagination); // Debug log
+      
+      const searchInput = document.getElementById('searchInput');
+      
+      // If we have cached search results, restore them
+      if (window.cachedSearchResults && window.cachedSearchResults.results && window.cachedSearchResults.results.length > 0) {
+        console.log('Restoring cached search results'); // Debug log
+        const currentPage = window.currentPagination ? window.currentPagination.currentPage : 0;
+        displayPaginatedResults(window.cachedSearchResults.results, currentPage);
+      } else if (searchInput && searchInput.value.trim()) {
+        // If we have a search term but no cached results, perform a new search
+        console.log('Performing new search with term:', searchInput.value.trim()); // Debug log
+        performComicVineSearch(searchInput.value.trim(), 0);
+      } else {
+        // No search term, show empty state
+        console.log('Showing empty state'); // Debug log
+        showEmptyState();
+      }
+    }
+
+    async function addComicVineSeries(volumeId, seriesName, publisher) {
+      // Check if we have a valid volume ID
+      if (!volumeId || volumeId === 'undefined' || volumeId === 'null') {
+        showMessage('Cannot add series: No Comic ID available', 'error');
+        return;
+      }
+      
+      const addButton = event.target;
+      const originalText = addButton.textContent;
+      
+      try {
+        // Disable button and show loading state
+        addButton.disabled = true;
+        addButton.textContent = 'Adding...';
+        addButton.classList.add('opacity-50', 'cursor-not-allowed');
+        
+        showMessage(`Adding "${seriesName}" to library...`, 'info');
+        
+        // Call Mylar3 API to add the series
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+        
+        const apiUrl = mylarConfig.buildApiUrl('addComic', {
+          id: volumeId,
+          comicname: seriesName,
+          comicyear: window.currentVolumeData.start_year || ''
+        });
+        const response = await fetch(apiUrl, {
+          signal: controller.signal
+        });
+        
+        clearTimeout(timeoutId);
+        
+        if (response.ok || response.status === 500) {
+          // Sometimes Mylar3 returns 500 even when the operation succeeds
+          let result = null;
+          try {
+            result = await response.json();
+            console.log('Add series response:', result);
+          } catch (jsonError) {
+            console.log('Could not parse JSON response:', jsonError);
+            // If we can't parse JSON but got a response, assume success only for non-500 status
+            if (response.status !== 500) {
+              result = { success: true };
+            }
+          }
+          
+          // Check if the API call was actually successful
+          if (result && result.success === false) {
+            // Extract error message from the response
+            let errorMsg = 'Unknown error';
+            if (result.error) {
+              if (typeof result.error === 'string') {
+                errorMsg = result.error;
+              } else if (result.error.message) {
+                errorMsg = result.error.message;
+              } else if (result.error.error) {
+                errorMsg = result.error.error;
+              }
+            }
+            throw new Error(`Mylar3 API Error: ${errorMsg}`);
+          }
+          
+          // Show success message
+          showMessage(`"${seriesName}" added successfully! Redirecting to library...`, 'success');
+          
+          // Wait a moment then redirect to library to see the new comic
+          setTimeout(() => {
+            window.location.href = 'index.html?added=true';
+          }, 2000);
+          
+        } else {
+          throw new Error(`Server responded with status: ${response.status}`);
+        }
+        
+      } catch (error) {
+        console.error('Add series error:', error);
+        
+        let errorMessage = 'Failed to add series to library';
+        
+        if (error.name === 'AbortError') {
+          errorMessage = 'Request timed out - the series may still be adding. Please check your library.';
+        } else if (error.message.includes('Failed to fetch')) {
+          errorMessage = 'Cannot connect to Mylar3. Please ensure Mylar3 is running and accessible.';
+        } else if (error.message) {
+          errorMessage = `Error: ${error.message}`;
+        }
+        
+        showMessage(errorMessage, 'error');
+        
+        // Fallback: Show manual instructions
+        const instructions = `Manual addition required for "${seriesName}":
+
+ComicVine Volume ID: ${volumeId}
+Publisher: ${publisher}
+Start Year: ${window.currentVolumeData.start_year || 'Unknown'}
+
+1. Go to Mylar3 web interface
+2. Click "Add Series"
+3. Paste Volume ID: ${volumeId}
+4. Click "Add Series"
+
+Or search manually for: ${seriesName}`;
+        
+        setTimeout(() => {
+          showMessage(instructions, 'info');
+        }, 3000);
+        
+      } finally {
+        // Reset button state
+        addButton.disabled = false;
+        addButton.textContent = originalText;
+        addButton.classList.remove('opacity-50', 'cursor-not-allowed');
+      }
+    }
+
+    // Initialize empty state
+    showEmptyState();
+
+    function hideConfigNotice() {
+      document.getElementById('configNotice').style.display = 'none';
+    }
+
+    // Initialize empty state
+    showEmptyState();
+    
+    // Function to ensure search inputs are styled correctly when theme changes
+    function applySearchInputStyles() {
+      const computedStyle = getComputedStyle(document.documentElement);
+      
+      // Update search container background
+      const searchContainer = document.querySelector('.search-container');
+      if (searchContainer) {
+        searchContainer.style.backgroundColor = computedStyle.getPropertyValue('--bg-primary').trim();
+        searchContainer.style.borderColor = computedStyle.getPropertyValue('--border-color').trim();
+      }
+      
+      // Update search input styles
+      const searchInput = document.getElementById('searchInput');
+      if (searchInput) {
+        searchInput.style.backgroundColor = computedStyle.getPropertyValue('--bg-secondary').trim();
+        searchInput.style.color = computedStyle.getPropertyValue('--text-primary').trim();
+        searchInput.style.borderColor = computedStyle.getPropertyValue('--border-color').trim();
+      }
+      
+      // Update search button
+      const searchButton = document.getElementById('searchButton');
+      if (searchButton) {
+        searchButton.style.backgroundColor = computedStyle.getPropertyValue('--accent-primary').trim();
+        searchButton.style.color = computedStyle.getPropertyValue('--bg-primary').trim();
+        searchButton.style.borderColor = computedStyle.getPropertyValue('--accent-primary').trim();
+      }
+      
+      // Update header
+      const header = document.querySelector('header.fixed');
+      if (header) {
+        header.style.backgroundColor = computedStyle.getPropertyValue('--bg-primary').trim();
+        header.style.borderColor = computedStyle.getPropertyValue('--border-color').trim();
+      }
+      
+      // Update bottom navigation
+      const bottomNav = document.querySelector('nav.fixed.bottom-0');
+      if (bottomNav) {
+        bottomNav.style.backgroundColor = computedStyle.getPropertyValue('--bg-primary').trim();
+        bottomNav.style.borderColor = computedStyle.getPropertyValue('--border-color').trim();
+      }
+    }
+    
+    // Apply styles on page load
+    document.addEventListener('DOMContentLoaded', () => {
+      // Small delay to ensure CSS variables are loaded
+      setTimeout(applySearchInputStyles, 100);
+    });
+    
+    // Listen for theme changes
+    window.addEventListener('themeChanged', () => {
+      setTimeout(applySearchInputStyles, 50);
+    });
+    
+    // Also apply theme when the page becomes visible (e.g., returning from another tab)
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) {
+        setTimeout(applySearchInputStyles, 50);
+      }
+    });
+  </script>
+</body>
+</html>
