@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+  <title>Wanted Issue Details</title>
+  
+  <!-- PWA and iOS Meta Tags -->
+  <link rel="manifest" href="./manifest.json">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Mylar3">
+  <meta name="theme-color" content="#1F1F1F">
+  <link rel="apple-touch-icon" href="icon-192.svg">
+  <link rel="icon" type="image/svg+xml" href="icon-192.svg">
+  
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="themes.css">
+  <script src="./theme-manager.js"></script>
+  <script src="./pwa-utils.js"></script>
+</head>
+<body class="bg-[#1F1F1F] text-[#ECECEC] min-h-screen flex flex-col">
+  
+  <!-- Top Bar -->
+  <header class="fixed top-0 left-0 right-0 bg-[#1F1F1F] flex items-center justify-between px-4 py-3 border-b border-[#444444] z-50" style="padding-top: calc(0.75rem + env(safe-area-inset-top, 0px));">
+    <a href="wanted.html" class="w-10 h-10 flex items-center justify-center text-[#CCAF45]" aria-label="Back">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+      </svg>
+    </a>
+    <h1 class="text-xl font-semibold">Wanted Details</h1>
+    <div class="w-10"></div> <!-- spacer -->
+  </header>
+
+  <!-- Main Content -->
+  <main class="flex-1 overflow-auto px-4 py-3" style="padding-top: calc(5rem + env(safe-area-inset-top, 0px)); padding-bottom: calc(3rem + env(safe-area-inset-bottom, 0px) * 0.5);">
+    <div id="details" class="text-[#ECECEC]">Loading…</div>
+  </main>
+
+  <!-- Bottom Tabs -->
+  <nav class="fixed bottom-0 left-0 right-0 bg-[#1F1F1F] border-t border-[#444444]" style="padding-bottom: calc(env(safe-area-inset-bottom, 0px) * 0.5);">
+    <div class="flex justify-around items-center h-16">
+      <a href="index.html" class="flex flex-col items-center justify-center text-[#999999] focus:outline-none focus:text-[#ECECEC]">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+      </svg>
+      <span class="text-xs mt-1">Library</span>
+    </a>
+    <a href="add.html" class="flex flex-col items-center justify-center text-[#999999] focus:outline-none focus:text-[#ECECEC]">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+      </svg>
+      <span class="text-xs mt-1">Add</span>
+    </a>
+    <a href="Pull-list.html" class="flex flex-col items-center justify-center text-[#999999] focus:outline-none focus:text-[#ECECEC]">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3M3 11h18M5 21h14a2 2 0 002-2V8H3v11a2 2 0 002 2z"/>
+      </svg>
+      <span class="text-xs mt-1">This Week</span>
+    </a>
+    <a href="history.html" class="flex flex-col items-center justify-center text-[#999999] focus:outline-none focus:text-[#ECECEC]">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+      </svg>
+      <span class="text-xs mt-1">History</span>
+    </a>
+    <a href="settings.html" class="flex flex-col items-center justify-center text-[#999999] focus:outline-none focus:text-[#ECECEC]">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+      </svg>
+      <span class="text-xs mt-1">Settings</span>
+    </a>
+    </div>
+  </nav>
+
+  <script>
+    const KEY = '274fb029315c3937d613c7272630f08c';
+    
+    // Get the appropriate API URL based on current server
+    const getApiUrl = () => {
+      // If running on localhost, use the proxy server on port 3000
+      if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+        return `${window.location.protocol}//localhost:3000`;
+      }
+      // For mobile/remote access, use the mobile server on port 8888 which includes proxy functionality
+      return `${window.location.protocol}//${window.location.hostname}:8888`;
+    };
+    
+    function getStatusColor(status) {
+      switch (status.toLowerCase()) {
+        case 'wanted': return 'bg-red-700 text-red-200';
+        case 'downloaded': return 'bg-green-700 text-green-200';
+        case 'snatched': return 'bg-blue-700 text-blue-200';
+        case 'skipped': return 'bg-gray-600 text-gray-200';
+        case 'failed': return 'bg-red-900 text-red-200';
+        default: return 'bg-[#444444] text-[#ECECEC]';
+      }
+    }
+    
+    const params = new URLSearchParams(window.location.search);
+    const issueID = params.get('issueID');
+    
+    if (!issueID) {
+      document.getElementById('details').textContent = 'No issue ID provided.';
+    } else {
+      fetch(`${getApiUrl()}/api/mylar?cmd=getWanted&apikey=${KEY}`)
+        .then(res => res.json())
+        .then(json => {
+          const w = (json.issues || []).find(x => x.IssueID === issueID);
+          const el = document.getElementById('details');
+          
+          if (!w) {
+            el.textContent = 'Issue not found.';
+            return;
+          }
+          
+          el.innerHTML = `
+            <div class="comic-details-card bg-[#2D2D2D] border border-[#444444] rounded-lg p-6 space-y-6">
+              <div class="text-center">
+                <h2 class="text-2xl font-bold mb-4 text-[#ECECEC] comic-title">${w.ComicName}</h2>
+                <div class="flex items-center justify-center space-x-4 mb-4">
+                  <div class="w-12 h-12 bg-red-600 rounded-full flex items-center justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"/>
+                    </svg>
+                  </div>
+                  <span class="inline-block px-3 py-1 text-sm font-bold rounded ${getStatusColor(w.Status || 'Wanted')}">${w.Status || 'Wanted'}</span>
+                </div>
+              </div>
+              
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="space-y-3">
+                  <div class="flex justify-between">
+                    <span class="text-caption">Issue Number:</span>
+                    <span class="text-label">#${w.Issue_Number}</span>
+                  </div>
+                  ${w.IssueName ? `
+                  <div class="flex justify-between">
+                    <span class="text-caption">Issue Name:</span>
+                    <span class="text-label issue-name">${w.IssueName}</span>
+                  </div>
+                  ` : ''}
+                  <div class="flex justify-between">
+                    <span class="text-caption">Publisher:</span>
+                    <span class="text-label comic-publisher">${w.ComicPublisher || 'Unknown'}</span>
+                  </div>
+                </div>
+                <div class="space-y-3">
+                  <div class="flex justify-between">
+                    <span class="text-caption">Release Date:</span>
+                    <span class="text-label issue-date">${w.ReleaseDate || 'Unknown'}</span>
+                  </div>
+                  <div class="flex justify-between">
+                    <span class="text-caption">Issue Date:</span>
+                    <span class="text-label issue-date">${w.IssueDate || 'Unknown'}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          `;
+        })
+        .catch(err => {
+          document.getElementById('details').textContent = 'Error loading issue details: ' + err.message;
+        });
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Text Readability Test</title>
+    <link rel="stylesheet" href="themes.css">
+</head>
+<body class="min-h-screen bg-[#1F1F1F] text-[#ECECEC] p-8">
+    <!-- Theme Toggle -->
+    <div class="fixed top-4 right-4 z-50 bg-[#2D2D2D] p-4 rounded-lg border border-[#444444]">
+        <div class="relative">
+            <input type="checkbox" id="theme-switch" class="sr-only">
+            <label for="theme-switch" class="flex items-center cursor-pointer">
+                <div class="relative w-12 h-6 bg-[#444444] rounded-full transition-colors">
+                    <div class="theme-toggle-slider"></div>
+                </div>
+                <span class="ml-3 text-sm font-medium">Dark/Light</span>
+            </label>
+        </div>
+    </div>
+
+    <div class="max-w-4xl mx-auto">
+        <h1 class="text-3xl font-bold mb-8 text-center">Text Readability Test</h1>
+        
+        <!-- Settings-like Section -->
+        <div class="bg-[#2D2D2D] rounded-lg p-6 mb-8">
+            <h2 class="text-xl font-semibold mb-6">Settings Section</h2>
+            
+            <div class="space-y-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h3 class="font-semibold">App Installation</h3>
+                        <p class="text-sm text-[#CCCCCC]">Install as a native app</p>
+                    </div>
+                    <span class="text-sm text-[#999999]">Checking...</span>
+                </div>
+                
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h3 class="font-semibold">Service Worker</h3>
+                        <p class="text-sm text-[#CCCCCC]">Background sync and offline support</p>
+                    </div>
+                    <span class="text-sm text-[#999999]">Active</span>
+                </div>
+                
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h3 class="font-semibold">Cache Status</h3>
+                        <p class="text-sm text-[#CCCCCC]">Offline data storage</p>
+                    </div>
+                    <span class="text-sm text-[#999999]">Ready</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Comic Cards Section -->
+        <div class="mb-8">
+            <h2 class="text-xl font-semibold mb-6">Comic Cards</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <a href="#" class="block bg-[#2D2D2D] border border-[#444444] rounded-md p-4 hover:border-[#CCAF45] focus:outline-none focus:border-[#CCAF45] transition-colors">
+                    <div class="flex justify-between items-center mb-2">
+                        <h2 class="text-lg font-semibold text-[#ECECEC] leading-snug">Spider-Man</h2>
+                        <span class="text-sm font-medium text-[#ECECEC]">#25</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <p class="text-sm font-medium text-[#999999]">Marvel Comics</p>
+                        <span class="text-xs font-bold px-2 py-1 rounded bg-[#22C55E] text-white">Active</span>
+                    </div>
+                </a>
+                
+                <a href="#" class="block bg-[#2D2D2D] border border-[#444444] rounded-md p-4 hover:border-[#CCAF45] focus:outline-none focus:border-[#CCAF45] transition-colors">
+                    <div class="flex justify-between items-center mb-2">
+                        <h2 class="text-lg font-semibold text-[#ECECEC] leading-snug">Batman</h2>
+                        <span class="text-sm font-medium text-[#ECECEC]">#142</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <p class="text-sm font-medium text-[#999999]">DC Comics</p>
+                        <span class="text-xs font-bold px-2 py-1 rounded bg-[#EF4444] text-white">Paused</span>
+                    </div>
+                </a>
+                
+                <a href="#" class="block bg-[#2D2D2D] border border-[#444444] rounded-md p-4 hover:border-[#CCAF45] focus:outline-none focus:border-[#CCAF45] transition-colors">
+                    <div class="flex justify-between items-center mb-2">
+                        <h2 class="text-lg font-semibold text-[#ECECEC] leading-snug">Saga</h2>
+                        <span class="text-sm font-medium text-[#ECECEC]">#66</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <p class="text-sm font-medium text-[#999999]">Image Comics</p>
+                        <span class="text-xs font-bold px-2 py-1 rounded bg-[#F59E0B] text-white">Ended</span>
+                    </div>
+                </a>
+            </div>
+        </div>
+        
+        <!-- Text Comparison -->
+        <div class="bg-[#2D2D2D] rounded-lg p-6">
+            <h2 class="text-xl font-semibold mb-6">Text Color Comparison</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div>
+                    <h3 class="font-semibold text-[#ECECEC] mb-3">Primary Text</h3>
+                    <p class="text-[#ECECEC]">This is primary text that should be highly readable in both themes.</p>
+                </div>
+                
+                <div>
+                    <h3 class="font-semibold text-[#CCCCCC] mb-3">Secondary Text</h3>
+                    <p class="text-[#CCCCCC]">This is secondary text that should be readable but less prominent.</p>
+                </div>
+                
+                <div>
+                    <h3 class="font-semibold text-[#999999] mb-3">Tertiary Text</h3>
+                    <p class="text-[#999999]">This is tertiary text for subtle information.</p>
+                </div>
+            </div>
+            
+            <div class="mt-6 p-4 bg-[#444444] rounded">
+                <p class="text-[#ECECEC] mb-2">Regular text on tertiary background</p>
+                <p class="text-[#CCCCCC] mb-2">Secondary text on tertiary background</p>
+                <p class="text-[#999999]">Tertiary text on tertiary background</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="./theme-manager.js"></script>
+</body>
+</html>

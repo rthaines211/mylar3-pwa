@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Theme Test</title>
+  <link rel="stylesheet" href="themes.css">
+</head>
+<body class="min-h-screen bg-[#1F1F1F] text-[#ECECEC] p-8">
+  <div class="max-w-md mx-auto">
+    <h1 class="text-2xl font-bold mb-6">Theme Test</h1>
+    
+    <div class="bg-[#2D2D2D] p-6 rounded-lg mb-6">
+      <h2 class="text-lg font-semibold mb-4">Current Theme: <span id="current-theme">dark</span></h2>
+      
+      <!-- Theme Toggle -->
+      <div class="flex items-center justify-between mb-4">
+        <span>Theme Toggle</span>
+        <div class="relative">
+          <input type="checkbox" id="theme-switch" class="sr-only">
+          <label for="theme-switch" class="flex items-center cursor-pointer">
+            <div class="relative w-12 h-6 bg-[#444444] rounded-full transition-colors">
+              <div class="theme-toggle-slider"></div>
+            </div>
+            <span class="ml-3 text-sm">Dark/Light</span>
+          </label>
+        </div>
+      </div>
+      
+      <!-- Test Elements -->
+      <div class="space-y-4">
+        <div class="bg-[#444444] p-4 rounded">
+          <p class="text-[#CCCCCC]">Secondary text</p>
+        </div>
+        
+        <button class="bg-[#CCAF45] text-[#1F1F1F] px-4 py-2 rounded">
+          Accent Button
+        </button>
+        
+        <input type="text" class="bg-[#2D2D2D] border border-[#444444] text-[#ECECEC] px-3 py-2 rounded w-full" placeholder="Test input">
+      </div>
+    </div>
+    
+    <div class="text-center">
+      <button onclick="testTheme()" class="bg-[#2D2D2D] text-[#ECECEC] px-4 py-2 rounded mr-2 mb-2">
+        Toggle Theme
+      </button>
+      <button onclick="debugTheme()" class="bg-[#444444] text-[#ECECEC] px-4 py-2 rounded mr-2 mb-2">
+        Debug Theme
+      </button>
+      <button onclick="testThemeSwitch()" class="bg-[#CCAF45] text-[#1F1F1F] px-4 py-2 rounded mb-2">
+        Test Switch
+      </button>
+    </div>
+  </div>
+
+  <script src="./theme-manager.js"></script>
+  <script>
+    function testTheme() {
+      if (window.themeManager) {
+        console.log('Current theme before toggle:', window.themeManager.currentTheme);
+        window.themeManager.toggleTheme();
+        console.log('Current theme after toggle:', window.themeManager.currentTheme);
+        updateThemeDisplay();
+      } else {
+        console.error('Theme manager not found!');
+      }
+    }
+    
+    function debugTheme() {
+      if (window.debugTheme) {
+        window.debugTheme();
+      } else {
+        console.log('Debug function not available');
+      }
+    }
+    
+    function updateThemeDisplay() {
+      const currentThemeSpan = document.getElementById('current-theme');
+      if (currentThemeSpan && window.themeManager) {
+        currentThemeSpan.textContent = window.themeManager.currentTheme;
+      }
+    }
+    
+    // Test the theme switch directly
+    function testThemeSwitch() {
+      const themeSwitch = document.getElementById('theme-switch');
+      if (themeSwitch) {
+        themeSwitch.checked = !themeSwitch.checked;
+        // Trigger the change event
+        themeSwitch.dispatchEvent(new Event('change'));
+        console.log('Theme switch toggled programmatically');
+      } else {
+        console.error('Theme switch element not found!');
+      }
+    }
+    
+    // Update theme display when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+      setTimeout(() => {
+        updateThemeDisplay();
+        console.log('Theme manager initialized:', !!window.themeManager);
+        if (window.themeManager) {
+          console.log('Initial theme:', window.themeManager.currentTheme);
+        }
+      }, 100);
+    });
+  </script>
+</body>
+</html>

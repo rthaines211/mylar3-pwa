@@ -1,0 +1,851 @@
+/* Global Theme System */
+:root {
+  /* Dark Theme (default) */
+  --bg-primary: #1F1F1F;
+  --bg-secondary: #2D2D2D;
+  --bg-tertiary: #444444;
+  --bg-quaternary: #555555;
+  --text-primary: #ECECEC;
+  --text-secondary: #CCCCCC;
+  --text-tertiary: #999999;
+  --accent-primary: #CCAF45;
+  --accent-secondary: #B8A040;
+  --border-color: #444444;
+  --success-color: #22C55E;
+  --error-color: #EF4444;
+  --warning-color: #F59E0B;
+  --info-color: #3B82F6;
+  
+  /* Typography Scale */
+  --font-size-heading: 1.125rem; /* 18px */
+  --font-size-label: 1rem; /* 16px */
+  --font-size-caption: 0.875rem; /* 14px */
+  --font-size-small: 0.75rem; /* 12px */
+  
+  --font-weight-heading: 600;
+  --font-weight-label: 500;
+  --font-weight-caption: 400;
+  --font-weight-small: 400;
+}
+
+/* Light Theme */
+[data-theme="light"] {
+  --bg-primary: #FFFFFF;
+  --bg-secondary: #F8F9FA;
+  --bg-tertiary: #E9ECEF;
+  --text-primary: #111111;
+  --text-secondary: #444444;
+  --text-tertiary: #555555;
+  --accent-primary: #B8860B;
+  --accent-secondary: #9A7209;
+  --border-color: #DEE2E6;
+  --success-color: #198754;
+  --error-color: #DC3545;
+  --warning-color: #FD7E14;
+  --info-color: #0D6EFD;
+}
+
+/* Typography Utilities for WCAG AA Compliance */
+.text-heading {
+  font-size: var(--font-size-heading);
+  font-weight: var(--font-weight-heading);
+  color: var(--text-primary);
+  line-height: 1.4;
+}
+
+.text-label {
+  font-size: var(--font-size-label);
+  font-weight: var(--font-weight-label);
+  color: var(--text-primary);
+  line-height: 1.5;
+}
+
+.text-caption {
+  font-size: var(--font-size-caption);
+  font-weight: var(--font-weight-caption);
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
+.text-small {
+  font-size: var(--font-size-small);
+  font-weight: var(--font-weight-small);
+  color: var(--text-tertiary);
+  line-height: 1.3;
+}
+
+.text-tertiary {
+  color: var(--text-tertiary) !important;
+}
+
+/* Override existing text color classes for better contrast */
+.text-sm.text-\[#CCCCCC\] {
+  font-size: var(--font-size-caption) !important;
+  font-weight: var(--font-weight-caption) !important;
+  color: var(--text-secondary) !important;
+}
+
+.text-sm.text-\[#999999\] {
+  font-size: var(--font-size-caption) !important;
+  font-weight: var(--font-weight-caption) !important;
+  color: var(--text-tertiary) !important;
+}
+
+.text-xs.text-\[#999999\] {
+  font-size: var(--font-size-small) !important;
+  font-weight: var(--font-weight-small) !important;
+  color: var(--text-tertiary) !important;
+}
+
+/* Section headings */
+.text-2xl.font-bold {
+  font-size: 1.5rem !important; /* 24px */
+  font-weight: 600 !important;
+  color: var(--text-primary) !important;
+  line-height: 1.3;
+}
+
+/* Settings option labels */
+.font-semibold {
+  font-size: var(--font-size-label) !important;
+  font-weight: var(--font-weight-label) !important;
+  color: var(--text-primary) !important;
+}
+
+/* Status text improvements */
+.text-right .text-sm {
+  font-size: var(--font-size-caption) !important;
+  font-weight: var(--font-weight-caption) !important;
+  color: var(--text-tertiary) !important;
+}
+
+/* Lazy Loading Styles */
+.lazy-loading {
+  opacity: 0.7;
+  filter: blur(2px);
+  transition: opacity 0.3s ease, filter 0.3s ease;
+}
+
+.lazy-loaded {
+  opacity: 1;
+  filter: blur(0);
+}
+
+.lazy-error {
+  opacity: 0.5;
+  filter: grayscale(100%);
+}
+
+/* Loading Skeleton for Images */
+.image-skeleton {
+  background: linear-gradient(90deg, var(--bg-secondary) 25%, var(--bg-tertiary) 50%, var(--bg-secondary) 75%);
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s infinite;
+}
+
+@keyframes skeleton-loading {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* Progressive Enhancement Styles */
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(2px);
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid var(--bg-tertiary);
+  border-top: 4px solid var(--accent-primary);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* GLOBAL THEME APPLICATION - Override ALL Tailwind classes */
+html, body {
+  background-color: var(--bg-primary) !important;
+  color: var(--text-primary) !important;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Override ALL dark color classes globally */
+* {
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
+/* Dark background overrides */
+.bg-\[#1F1F1F\], 
+[data-theme="light"] .bg-\[#1F1F1F\] { 
+  background-color: var(--bg-primary) !important; 
+}
+
+.bg-\[#2D2D2D\], 
+[data-theme="light"] .bg-\[#2D2D2D\] { 
+  background-color: var(--bg-secondary) !important; 
+}
+
+.bg-\[#444444\], 
+[data-theme="light"] .bg-\[#444444\] { 
+  background-color: var(--bg-tertiary) !important; 
+}
+
+.bg-\[#333333\], 
+[data-theme="light"] .bg-\[#333333\] { 
+  background-color: var(--bg-tertiary) !important; 
+}
+
+.bg-\[#555555\], 
+[data-theme="light"] .bg-\[#555555\] { 
+  background-color: var(--bg-tertiary) !important; 
+}
+
+/* Text color overrides */
+.text-\[#ECECEC\], 
+[data-theme="light"] .text-\[#ECECEC\] { 
+  color: var(--text-primary) !important; 
+}
+
+.text-\[#CCCCCC\], 
+[data-theme="light"] .text-\[#CCCCCC\] { 
+  color: var(--text-secondary) !important; 
+}
+
+.text-\[#999999\], 
+[data-theme="light"] .text-\[#999999\] { 
+  color: var(--text-tertiary) !important; 
+}
+
+.text-\[#CCAF45\], 
+[data-theme="light"] .text-\[#CCAF45\] { 
+  color: var(--accent-primary) !important; 
+}
+
+/* Border color overrides */
+.border-\[#444444\], 
+[data-theme="light"] .border-\[#444444\] { 
+  border-color: var(--border-color) !important; 
+}
+
+.border-\[#333333\], 
+[data-theme="light"] .border-\[#333333\] { 
+  border-color: var(--border-color) !important; 
+}
+
+/* Placeholder overrides */
+.placeholder-\[#999999\], 
+[data-theme="light"] .placeholder-\[#999999\] { 
+  color: var(--text-tertiary) !important; 
+}
+
+/* Hover states */
+.hover\:bg-\[#2D2D2D\]:hover, 
+[data-theme="light"] .hover\:bg-\[#2D2D2D\]:hover { 
+  background-color: var(--bg-secondary) !important; 
+}
+
+.hover\:bg-\[#333333\]:hover, 
+[data-theme="light"] .hover\:bg-\[#333333\]:hover { 
+  background-color: var(--bg-tertiary) !important; 
+}
+
+.hover\:bg-\[#444444\]:hover, 
+[data-theme="light"] .hover\:bg-\[#444444\]:hover { 
+  background-color: var(--bg-tertiary) !important; 
+}
+
+.hover\:bg-\[#555555\]:hover, 
+[data-theme="light"] .hover\:bg-\[#555555\]:hover { 
+  background-color: var(--bg-tertiary) !important; 
+}
+
+/* Focus states */
+.focus\:border-\[#CCAF45\]:focus, 
+[data-theme="light"] .focus\:border-\[#CCAF45\]:focus { 
+  border-color: var(--accent-primary) !important; 
+}
+
+.focus\:ring-\[#CCAF45\]:focus, 
+[data-theme="light"] .focus\:ring-\[#CCAF45\]:focus { 
+  --tw-ring-color: var(--accent-primary) !important; 
+}
+
+/* Navigation specific */
+.bg-black, 
+[data-theme="light"] .bg-black { 
+  background-color: var(--bg-primary) !important; 
+}
+
+.text-white, 
+[data-theme="light"] .text-white { 
+  color: var(--text-primary) !important; 
+}
+
+.text-gray-300, 
+[data-theme="light"] .text-gray-300 { 
+  color: var(--text-secondary) !important; 
+}
+
+.text-gray-500, 
+[data-theme="light"] .text-gray-500 { 
+  color: var(--text-tertiary) !important; 
+}
+
+.bg-gray-800, 
+[data-theme="light"] .bg-gray-800 { 
+  background-color: var(--bg-secondary) !important; 
+}
+
+.bg-gray-700, 
+[data-theme="light"] .bg-gray-700 { 
+  background-color: var(--bg-tertiary) !important; 
+}
+
+/* Theme toggle specific styling */
+.theme-toggle-slider {
+  transition: transform 0.3s ease, background-color 0.3s ease;
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 20px;
+  height: 20px;
+  background-color: #ECECEC;
+  border-radius: 50%;
+  transform: translateX(2px);
+}
+
+/* Improved toggle styling for better visual feedback */
+input[type="checkbox"]:checked + label .relative {
+  background-color: #CCAF45 !important;
+}
+
+input[type="checkbox"]:not(:checked) + label .relative {
+  background-color: #444444 !important;
+}
+
+[data-theme="light"] input[type="checkbox"]:checked + label .relative {
+  background-color: #B8860B !important;
+}
+
+[data-theme="light"] input[type="checkbox"]:not(:checked) + label .relative {
+  background-color: #DEE2E6 !important;
+}
+
+/* Light theme slider styling */
+[data-theme="light"] .theme-toggle-slider {
+  background-color: #1F1F1F;
+}
+
+/* Force background on specific containers */
+.min-h-screen, 
+.h-screen, 
+.h-full, 
+.fixed, 
+.absolute {
+  background-color: var(--bg-primary) !important;
+}
+
+/* Override any remaining dark backgrounds */
+[data-theme="light"] div[class*="bg-[#"], 
+[data-theme="light"] section[class*="bg-[#"], 
+[data-theme="light"] main[class*="bg-[#"], 
+[data-theme="light"] header[class*="bg-[#"], 
+[data-theme="light"] footer[class*="bg-[#"], 
+[data-theme="light"] nav[class*="bg-[#"] {
+  background-color: var(--bg-secondary) !important;
+}
+
+/* Comic card improvements for light mode */
+[data-theme="light"] .bg-\[#2D2D2D\] { 
+  background-color: #FFFFFF !important; 
+  border-color: #DEE2E6 !important;
+}
+
+[data-theme="light"] .border-\[#444444\] { 
+  border-color: #DEE2E6 !important; 
+}
+
+[data-theme="light"] .hover\:border-\[#CCAF45\]:hover { 
+  border-color: #B8860B !important; 
+}
+
+[data-theme="light"] .focus\:border-\[#CCAF45\]:focus { 
+  border-color: #B8860B !important; 
+}
+
+/* Status colors for comic cards */
+[data-theme="light"] .bg-\[#22C55E\] { 
+  background-color: #198754 !important; 
+}
+
+[data-theme="light"] .bg-\[#EF4444\] { 
+  background-color: #DC3545 !important; 
+}
+
+[data-theme="light"] .bg-\[#F59E0B\] { 
+  background-color: #FD7E14 !important; 
+}
+
+/* Make advanced options buttons more visible in light mode */
+[data-theme="light"] #advanced-toggle {
+  color: var(--text-primary) !important;
+}
+
+[data-theme="light"] #advanced-options button {
+  background-color: var(--bg-tertiary) !important;
+  color: var(--text-primary) !important;
+  border: 1px solid var(--border-color);
+}
+
+[data-theme="light"] #advanced-options button:hover {
+  background-color: var(--accent-secondary) !important;
+  color: white !important;
+}
+
+/* Ensure library cards have correct background in light mode */
+[data-theme="light"] a.bg-\[#2D2D2D\] {
+  background-color: var(--bg-secondary) !important;
+  border-color: var(--border-color) !important;
+}
+
+[data-theme="light"] #content a.block {
+  background-color: var(--bg-secondary) !important;
+  border-color: var(--border-color) !important;
+}
+
+/* Fix text colors in library cards for light mode */
+[data-theme="light"] #content .text-\[#ECECEC\] {
+  color: var(--text-primary) !important;
+}
+
+[data-theme="light"] #content .text-\[#999999\] {
+  color: var(--text-tertiary) !important;
+}
+
+/* Make sure body fills the screen */
+html, body {
+  min-height: 100vh;
+  width: 100%;
+}
+
+/* Library card specific styling to ensure they work in light mode */
+.library-card {
+  background-color: var(--bg-secondary) !important;
+  border-color: var(--border-color) !important;
+}
+
+.library-card:hover {
+  border-color: var(--accent-primary) !important;
+}
+
+.library-card h2, 
+.library-card span:not(.text-xs) {
+  color: var(--text-primary) !important;
+}
+
+.library-card p {
+  color: var(--text-tertiary) !important;
+}
+
+/* Comic details page specific styling */
+[data-theme="light"] #details h2.text-xl,
+[data-theme="light"] #details h2.text-2xl {
+  color: var(--text-primary) !important;
+}
+
+[data-theme="light"] #details p.text-base.text-\[#CCCCCC\] {
+  color: var(--text-secondary) !important;
+}
+
+[data-theme="light"] #details span.text-\[#ECECEC\],
+[data-theme="light"] #details h3.text-lg.font-semibold.text-\[#ECECEC\],
+[data-theme="light"] #details h4.font-semibold.text-\[#ECECEC\] {
+  color: var(--text-primary) !important;
+}
+
+[data-theme="light"] #details span.text-\[#CCAF45\] {
+  color: var(--accent-primary) !important;
+}
+
+/* Fix issues list in comic details */
+[data-theme="light"] #issuesList .bg-\[#2D2D2D\] {
+  background-color: var(--bg-secondary) !important;
+  border-color: var(--border-color) !important;
+}
+
+[data-theme="light"] #issuesList .text-\[#ECECEC\] {
+  color: var(--text-primary) !important;
+}
+
+[data-theme="light"] #issuesList .text-\[#CCCCCC\] {
+  color: var(--text-secondary) !important;
+}
+
+[data-theme="light"] #issuesList .text-\[#999999\] {
+  color: var(--text-tertiary) !important;
+}
+
+[data-theme="light"] #issuesList .border-\[#444444\] {
+  border-color: var(--border-color) !important;
+}
+
+/* Fix pagination info and buttons in comic details */
+[data-theme="light"] #paginationInfo.text-\[#999999\] {
+  color: var(--text-tertiary) !important;
+}
+
+/* Pagination button styling for add comics page */
+.pagination-button {
+  background-color: var(--bg-tertiary) !important;
+  color: var(--text-primary) !important;
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
+  transition: all 0.2s ease;
+  border: 1px solid var(--border-color);
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.pagination-button:hover {
+  background-color: var(--accent-primary) !important;
+  color: var(--bg-primary) !important;
+  border-color: var(--accent-primary) !important;
+}
+
+.pagination-button:disabled {
+  background-color: var(--bg-secondary) !important;
+  color: var(--text-tertiary) !important;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* Enhanced search results text contrast for add comics */
+#searchResults .text-\[#ECECEC\] {
+  color: var(--text-primary) !important;
+  font-weight: 500 !important;
+}
+
+#searchResults .text-\[#CCCCCC\] {
+  color: var(--text-secondary) !important;
+  font-weight: 400 !important;
+}
+
+#searchResults .text-\[#999999\] {
+  color: var(--text-tertiary) !important;
+  font-weight: 400 !important;
+}
+
+#searchResults .text-\[#777777\] {
+  color: var(--text-tertiary) !important;
+  font-weight: 400 !important;
+}
+
+#searchResults .text-\[#666666\] {
+  color: var(--text-tertiary) !important;
+  font-weight: 400 !important;
+}
+
+/* Improve specific text elements in search results */
+#searchResults h3.font-semibold {
+  color: var(--text-primary) !important;
+  font-weight: 600 !important;
+  line-height: 1.3 !important;
+}
+
+#searchResults .text-xs {
+  color: var(--text-secondary) !important;
+  font-weight: 400 !important;
+}
+
+/* Year and issue count styling for better readability */
+#searchResults span.text-\[#CCAF45\] {
+  color: var(--accent-primary) !important;
+  font-weight: 600 !important;
+}
+
+/* Publisher name styling */
+#searchResults p.text-xs.text-\[#CCCCCC\] {
+  color: var(--text-secondary) !important;
+  font-weight: 500 !important;
+}
+
+/* Search results metadata text */
+#searchResults .text-sm.text-\[#999999\] {
+  color: var(--text-secondary) !important;
+  font-weight: 500 !important;
+}
+
+#searchResults .text-xs.text-\[#777777\] {
+  color: var(--text-secondary) !important;
+  font-weight: 400 !important;
+}
+
+/* Search results card hover effects */
+#searchResults .bg-\[#2D2D2D\]:hover {
+  background-color: var(--bg-tertiary) !important;
+}
+
+#searchResults .hover\:border-\[#CCAF45\]:hover {
+  border-color: var(--accent-primary) !important;
+}
+
+/* Empty state text styling */
+#searchResults .text-lg.font-medium {
+  color: var(--text-primary) !important;
+  font-weight: 600 !important;
+}
+
+#searchResults .text-center .text-sm {
+  color: var(--text-secondary) !important;
+  font-weight: 400 !important;
+}
+
+/* Search example text */
+#searchResults .text-xs.text-\[#666666\] p {
+  color: var(--text-tertiary) !important;
+}
+
+/* Light theme specific overrides for better contrast */
+[data-theme="light"] #searchResults .text-\[#999999\] {
+  color: var(--text-secondary) !important;
+}
+
+[data-theme="light"] #searchResults .text-\[#777777\] {
+  color: var(--text-secondary) !important;
+}
+
+[data-theme="light"] #searchResults .text-\[#666666\] {
+  color: var(--text-secondary) !important;
+}
+
+/* Ensure pagination text is visible */
+#searchResults .text-xs.text-\[#999999\] {
+  color: var(--text-secondary) !important;
+  font-weight: 500 !important;
+}
+
+/* Add series button styling */
+.add-series-button {
+  background-color: var(--accent-primary) !important;
+  color: var(--bg-primary) !important;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  border: none;
+  cursor: pointer;
+  font-size: 0.875rem;
+}
+
+.add-series-button:hover {
+  background-color: var(--accent-secondary) !important;
+  transform: translateY(-1px);
+}
+
+.add-series-button:disabled,
+.add-series-button-disabled {
+  background-color: var(--bg-tertiary) !important;
+  color: var(--text-tertiary) !important;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* Loading indicator text color */
+#loadingIndicator p {
+  color: var(--text-secondary) !important;
+}
+
+/* Fix volume details text colors */
+#searchResults .grid .text-\[#999999\] {
+  color: var(--text-secondary) !important;
+  font-weight: 500 !important;
+}
+
+#searchResults .grid .text-\[#ECECEC\] {
+  color: var(--text-primary) !important;
+}
+
+#searchResults .grid .text-\[#CCAF45\] {
+  color: var(--accent-primary) !important;
+  font-weight: 600 !important;
+}
+
+/* Fix aliases (tags) styling */
+#searchResults .bg-\[#444444\] {
+  background-color: var(--bg-tertiary) !important;
+}
+
+#searchResults .bg-\[#444444\] .text-\[#ECECEC\] {
+  color: var(--text-primary) !important;
+}
+
+/* Fix the filter container background */
+.fixed.bg-\[#1F1F1F\],
+.search-container {
+  background-color: var(--bg-primary) !important;
+  border-color: var(--border-color) !important;
+}
+
+/* Search input styling */
+.search-input {
+  background-color: var(--bg-secondary) !important;
+  border: 1px solid var(--border-color) !important;
+  border-radius: 0.5rem;
+  color: var(--text-primary) !important;
+  outline: none;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+}
+
+.search-input:focus {
+  border-color: var(--accent-primary) !important;
+  box-shadow: 0 0 0 2px rgba(204, 175, 69, 0.2);
+}
+
+.search-input::placeholder {
+  color: var(--text-tertiary) !important;
+}
+
+/* Filter select comprehensive styling */
+.filter-select {
+  background-color: var(--bg-secondary) !important;
+  border: 1px solid var(--border-color) !important;
+  border-radius: 0.375rem;
+  color: var(--text-primary) !important;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  transition: all 0.3s ease;
+}
+
+.filter-select:focus {
+  border-color: var(--accent-primary) !important;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(204, 175, 69, 0.2);
+}
+
+.filter-select option {
+  background-color: var(--bg-secondary) !important;
+  color: var(--text-primary) !important;
+}
+
+/* Header and navigation fixes */
+.fixed.bg-\[#1F1F1F\] {
+  background-color: var(--bg-primary) !important;
+}
+
+.border-\[#444444\] {
+  border-color: var(--border-color) !important;
+}
+
+/* Button hover states */
+.hover\:bg-\[#2D2D2D\]:hover {
+  background-color: var(--bg-secondary) !important;
+}
+
+/* Library card styling */
+.library-card.bg-\[#2D2D2D\] {
+  background-color: var(--bg-secondary) !important;
+}
+
+.library-card.border-\[#444444\] {
+  border-color: var(--border-color) !important;
+}
+
+.library-card.hover\:border-\[#CCAF45\]:hover,
+.library-card.focus\:border-\[#CCAF45\]:focus {
+  border-color: var(--accent-primary) !important;
+}
+
+/* Status badges */
+.bg-\[#CCAF45\] {
+  background-color: var(--accent-primary) !important;
+}
+
+.text-\[#1F1F1F\] {
+  color: var(--bg-primary) !important;
+}
+
+.bg-\[#444444\] {
+  background-color: var(--bg-tertiary) !important;
+}
+
+.text-\[#ECECEC\] {
+  color: var(--text-primary) !important;
+}
+
+/* Action buttons */
+.bg-\[#CCAF45\].hover\:bg-\[#B8A040\]:hover {
+  background-color: var(--accent-secondary) !important;
+}
+
+/* Search button styling */
+.search-button {
+  background-color: var(--accent-primary) !important;
+  color: var(--bg-primary) !important;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.search-button:hover {
+  background-color: var(--accent-secondary) !important;
+  transform: translateY(-1px);
+}
+
+.search-button:disabled {
+  background-color: var(--bg-tertiary) !important;
+  color: var(--text-tertiary) !important;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* Search container comprehensive styling */
+.search-container {
+  background-color: var(--bg-primary) !important;
+  border-color: var(--border-color) !important;
+  transition: all 0.3s ease;
+}
+
+/* Pull list publisher heading styling */
+.publisher-heading {
+  color: var(--accent-primary) !important;
+  background-color: var(--bg-tertiary) !important;
+  border-color: var(--accent-primary) !important;
+}
+
+.publisher-heading:hover {
+  background-color: var(--bg-quaternary) !important;
+}
+
+/* Override hardcoded publisher heading colors */
+.text-\[#CCAF45\].publisher-heading {
+  color: var(--accent-primary) !important;
+}
+
+.bg-\[#2A2A2A\].publisher-heading {
+  background-color: var(--bg-tertiary) !important;
+}
+
+.border-\[#CCAF45\].publisher-heading {
+  border-color: var(--accent-primary) !important;
+}
+
+.hover\:bg-\[#333333\].publisher-heading:hover {
+  background-color: var(--bg-quaternary) !important;
+}

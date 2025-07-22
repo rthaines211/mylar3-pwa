@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+  <title>Mylar3 Wanted</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23CCAF45'><path d='M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z'/></svg>">
+  
+  <!-- PWA and iOS Meta Tags -->
+  <link rel="manifest" href="./manifest.json">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Mylar3">
+  <meta name="theme-color" content="#1F1F1F">
+  <link rel="apple-touch-icon" href="icon-192.svg">
+  <link rel="icon" type="image/svg+xml" href="icon-192.svg">
+  <!-- Stylesheets -->
+  <link rel="stylesheet" href="themes.css">
+  <!-- In production, bundle Tailwind locally; this CDN is for dev only -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    // Suppress Tailwind CDN production warning in PWA
+    const originalWarn = console.warn;
+    console.warn = function(...args) {
+      if (args[0] && args[0].includes('cdn.tailwindcss.com should not be used in production')) {
+        return; // Suppress this specific warning
+      }
+      originalWarn.apply(console, args);
+    };
+  </script>
+  <script src="./pwa-utils.js"></script>
+  <script src="./theme-manager.js"></script>
+</head>
+<body class="bg-[#1F1F1F] text-[#ECECEC] min-h-screen flex flex-col">
+  
+  <!-- Top Bar -->
+  <header class="fixed top-0 left-0 right-0 bg-[#1F1F1F] flex items-center justify-between px-4 py-3 border-b border-[#444444] z-50" style="padding-top: calc(0.75rem + env(safe-area-inset-top, 0px));">
+    <div class="w-10"></div> <!-- spacer -->
+    <h1 class="text-xl font-semibold">Wanted</h1>
+    <button id="wantedSearchToggle" aria-label="Search" class="w-10 h-10 flex items-center justify-center text-[#CCAF45]">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2"/>
+        <line x1="21" y1="21" x2="16.65" y2="16.65" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+    </button>
+  </header>
+
+  <!-- Search Control -->
+  <div class="fixed left-0 right-0 px-4 py-3 border-b z-40 search-container" style="top: calc(4rem + env(safe-area-inset-top, 0px)); background-color: var(--bg-primary); border-color: var(--border-color);">
+    <input id="wantedSearchInput" type="text" placeholder="Search wanted..."
+           class="hidden w-full search-input" />
+  </div>
+
+  <!-- Main Content -->
+  <main class="flex-1 overflow-auto px-4 py-3" style="padding-top: calc(8rem + env(safe-area-inset-top, 0px)); padding-bottom: calc(3rem + env(safe-area-inset-bottom, 0px) * 0.5);">
+    <div id="wantedContent" class="space-y-3">Loading…</div>
+  </main>
+
+  <!-- Bottom Navigation -->
+  <nav class="fixed bottom-0 left-0 right-0 bg-[#1F1F1F] border-t border-[#444444]" style="padding-bottom: calc(env(safe-area-inset-bottom, 0px) * 0.5);">
+    <div class="flex justify-around items-center h-16">
+      <a href="index.html" class="flex flex-col items-center justify-center text-[#999999] focus:outline-none focus:text-[#ECECEC]">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+      </svg>
+      <span class="text-xs mt-1 font-medium">Library</span>
+    </a>
+    <a href="add.html" class="flex flex-col items-center justify-center text-[#999999] focus:outline-none focus:text-[#ECECEC]">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+      </svg>
+      <span class="text-xs mt-1">Add</span>
+    </a>
+    <a href="Pull-list.html" class="flex flex-col items-center justify-center text-[#999999] focus:outline-none focus:text-[#ECECEC]">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3M3 11h18M5 21h14a2 2 0 002-2V8H3v11a2 2 0 002 2z"/>
+      </svg>
+      <span class="text-xs mt-1">This Week</span>
+    </a>
+    <a href="history.html" class="flex flex-col items-center justify-center text-[#999999] focus:outline-none focus:text-[#ECECEC]">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+      </svg>
+      <span class="text-xs mt-1">History</span>
+    </a>
+    <a href="settings.html" class="flex flex-col items-center justify-center text-[#999999] focus:outline-none focus:text-[#ECECEC]">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+      </svg>
+      <span class="text-xs mt-1">Settings</span>
+    </a>
+    </div>
+  </nav>
+
+  <script>
+    // ES5 Compatible version - replaced const/let with var, arrow functions with regular functions
+    var KEY = '274fb029315c3937d613c7272630f08c';
+    var allWanted = [];
+
+    document.getElementById('wantedSearchToggle').addEventListener('click', function() {
+      var input = document.getElementById('wantedSearchInput');
+      input.classList.toggle('hidden');
+      if (!input.classList.contains('hidden')) {
+        input.focus();
+      } else { 
+        input.value = ''; 
+        applyWantedFilter(); 
+      }
+    });
+
+    // Get the appropriate API URL based on current server
+    function getApiUrl() {
+      // If running on localhost, use the proxy server on port 3000
+      if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+        return window.location.protocol + '//localhost:3000';
+      }
+      // For mobile/remote access, use the mobile server on port 8888 which includes proxy functionality
+      return window.location.protocol + '//' + window.location.hostname + ':8888';
+    }
+    
+    console.log('Wanted API URL:', getApiUrl() + '/api/mylar?cmd=getWanted&apikey=' + KEY);
+    console.log('Current hostname:', window.location.hostname);
+    console.log('Using API URL:', getApiUrl());
+    
+    fetch(getApiUrl() + '/api/mylar?cmd=getWanted&apikey=' + KEY)
+      .then(function(r) { 
+        console.log('Wanted Response status:', r.status);
+        console.log('Wanted Response ok:', r.ok);
+        if (!r.ok) {
+          throw new Error('HTTP ' + r.status + ': ' + r.statusText);
+        }
+        return r.json(); 
+      })
+      .then(function(json) { 
+        console.log('Wanted Response data:', json);
+        if (json.success === false) {
+          throw new Error(json.error || 'API returned success: false');
+        }
+        allWanted = json.issues || []; 
+        document.getElementById('wantedSearchInput').addEventListener('input', applyWantedFilter); 
+        applyWantedFilter(); 
+      })
+      .catch(function(e) { 
+        console.error('Wanted API Error:', e);
+        document.getElementById('wantedContent').innerHTML = 
+          '<div class="text-center py-8">' +
+          '<div class="text-red-400 text-lg mb-2">❌ Error Loading Wanted Issues</div>' +
+          '<div class="text-[#CCCCCC] text-sm mb-4">' + e.message + '</div>' +
+          '<button onclick="location.reload()" class="px-4 py-2 bg-[#CCAF45] text-[#1F1F1F] rounded hover:bg-[#B8A040]">Retry</button>' +
+          '</div>';
+      });
+
+    function applyWantedFilter() {
+      var term = document.getElementById('wantedSearchInput').value.toLowerCase();
+      var filtered = allWanted.filter(function(w) { 
+        return w.ComicName.toLowerCase().indexOf(term) !== -1; 
+      });
+      renderWanted(filtered);
+    }
+    
+    function renderWanted(items) {
+      var el = document.getElementById('wantedContent');
+      if (!items.length) {
+        el.textContent = 'No wanted titles found.';
+        return;
+      }
+      
+      function getStatusColor(status) {
+        switch (status.toLowerCase()) {
+          case 'wanted': return 'bg-red-700 text-red-200';
+          case 'downloaded': return 'bg-green-700 text-green-200';
+          case 'snatched': return 'bg-blue-700 text-blue-200';
+          case 'skipped': return 'bg-gray-600 text-gray-200';
+          case 'failed': return 'bg-red-900 text-red-200';
+          default: return 'bg-[#444444] text-[#ECECEC]';
+        }
+      }
+      
+      var html = '';
+      for (var i = 0; i < items.length; i++) {
+        var w = items[i];
+        html += '<a href="wanted-details.html?issueID=' + encodeURIComponent(w.IssueID) + '" class="library-card block bg-[#2D2D2D] border border-[#444444] rounded-lg p-3 hover:border-[#CCAF45] focus:outline-none focus:border-[#CCAF45] transition-colors duration-200">';
+        html += '<div class="flex items-center space-x-3">';
+        html += '<div class="flex-1 min-w-0">';
+        html += '<h2 class="text-lg font-semibold text-[#ECECEC] leading-snug truncate comic-title">' + w.ComicName + '</h2>';
+        html += '<p class="text-sm text-[#999999] comic-publisher">Issue #' + w.Issue_Number + '</p>';
+        html += '<div class="flex items-center justify-between mt-2">';
+        html += '<span class="text-xs text-tertiary">Missing</span>';
+        html += '<span class="text-xs font-bold px-2 py-1 rounded ' + getStatusColor(w.Status || 'Wanted') + '">' + (w.Status || 'Wanted') + '</span>';
+        html += '</div>';
+        html += '</div>';
+        html += '</div>';
+        html += '</a>';
+      }
+      el.innerHTML = html;
+    }
+
+    // Function to apply theme variables to elements
+    function applyThemeToElements() {
+      const computedStyle = getComputedStyle(document.documentElement);
+      
+      // Update header background
+      const headers = document.querySelectorAll('header.fixed, .fixed.bg-\\[\\#1F1F1F\\]');
+      headers.forEach(header => {
+        header.style.backgroundColor = computedStyle.getPropertyValue('--bg-primary').trim();
+        header.style.borderColor = computedStyle.getPropertyValue('--border-color').trim();
+      });
+
+      // Update search container
+      const searchContainers = document.querySelectorAll('.search-container');
+      searchContainers.forEach(container => {
+        container.style.backgroundColor = computedStyle.getPropertyValue('--bg-primary').trim();
+        container.style.borderColor = computedStyle.getPropertyValue('--border-color').trim();
+      });
+
+      // Update search input
+      const searchInput = document.getElementById('wantedSearchInput');
+      if (searchInput) {
+        searchInput.style.backgroundColor = computedStyle.getPropertyValue('--bg-secondary').trim();
+        searchInput.style.borderColor = computedStyle.getPropertyValue('--border-color').trim();
+        searchInput.style.color = computedStyle.getPropertyValue('--text-primary').trim();
+      }
+      
+      // Update bottom navigation
+      const bottomNav = document.querySelector('nav.fixed.bottom-0');
+      if (bottomNav) {
+        bottomNav.style.backgroundColor = computedStyle.getPropertyValue('--bg-primary').trim();
+        bottomNav.style.borderColor = computedStyle.getPropertyValue('--border-color').trim();
+      }
+      
+      // Update wanted cards
+      const wantedCards = document.querySelectorAll('.wanted-card, a.bg-\\[\\#2D2D2D\\]');
+      wantedCards.forEach(card => {
+        card.style.backgroundColor = computedStyle.getPropertyValue('--bg-secondary').trim();
+        card.style.borderColor = computedStyle.getPropertyValue('--border-color').trim();
+      });
+    }
+
+    // Apply theme on page load
+    document.addEventListener('DOMContentLoaded', () => {
+      setTimeout(applyThemeToElements, 100);
+    });
+
+    // Listen for theme changes
+    window.addEventListener('themeChanged', () => {
+      setTimeout(applyThemeToElements, 50);
+    });
+    
+    // Also apply theme when the page becomes visible (e.g., returning from another tab)
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) {
+        setTimeout(applyThemeToElements, 50);
+      }
+    });
+  </script>
+</body>
+</html>

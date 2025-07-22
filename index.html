@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+  <title>Mylar3 Library</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23CCAF45'><path d='M4 6h16M4 12h16M4 18h16'/></svg>">
+  
+  <!-- PWA and iOS Meta Tags -->
+  <link rel="manifest" href="./manifest.json">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Mylar3">
+  <meta name="theme-color" content="#1F1F1F">
+  <link rel="apple-touch-icon" href="icon-192.svg">
+  <link rel="icon" type="image/svg+xml" href="icon-192.svg">
+  <!-- Stylesheets -->
+  <link rel="stylesheet" href="themes.css">
+  <!-- In production, bundle Tailwind locally; this CDN is for dev only -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    // Suppress Tailwind CDN production warning in PWA
+    const originalWarn = console.warn;
+    console.warn = function(...args) {
+      if (args[0] && args[0].includes('cdn.tailwindcss.com should not be used in production')) {
+        return; // Suppress this specific warning
+      }
+      originalWarn.apply(console, args);
+    };
+  </script>
+  <script src="./lib/sql-wasm.js"></script>
+  <script src="./pwa-utils.js"></script>
+  <script src="./theme-manager.js"></script>
+  <script src="./db-cache.js"></script>
+  <script src="./lazy-loader.js"></script>
+</head>
+<body class="bg-[#1F1F1F] text-[#ECECEC] min-h-screen flex flex-col">
+  
+  <!-- Top Bar -->
+  <header class="fixed top-0 left-0 right-0 bg-[#1F1F1F] flex items-center justify-between px-4 py-3 border-b border-[#444444] z-50" style="padding-top: calc(0.75rem + env(safe-area-inset-top, 0px));">
+    <a href="wanted.html" class="w-10 h-10 flex items-center justify-center text-[#CCAF45] hover:bg-[#2D2D2D] rounded-full transition-colors duration-200" title="Wanted">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/>
+      </svg>
+    </a>
+    <h1 class="text-xl font-semibold">Library</h1>
+    <div class="flex items-center space-x-2">
+      <button id="refreshButton" onclick="refreshLibrary()" class="w-10 h-10 flex items-center justify-center text-[#CCAF45] hover:bg-[#2D2D2D] rounded-full transition-colors duration-200" title="Refresh Library">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+        </svg>
+      </button>
+      <button id="searchToggle" aria-label="Search" class="w-10 h-10 flex items-center justify-center text-[#CCAF45]">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2"/>
+          <line x1="21" y1="21" x2="16.65" y2="16.65" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- Search/Filter Controls -->
+  <div class="fixed left-0 right-0 px-4 py-3 border-b z-40 search-container" style="top: calc(4rem + env(safe-area-inset-top, 0px)); background-color: var(--bg-primary); border-color: var(--border-color);">
+    <input id="searchInput" type="text" placeholder="Search series..." 
+           class="hidden w-full search-input" />
+    <div id="filterSortGroup" class="flex space-x-3">
+      <select id="publisherFilter" class="filter-select flex-1">
+        <option value="">All Publishers</option>
+      </select>
+      <select id="sortSelect" class="filter-select flex-1">
+        <option value="name-asc">Name ↑</option>
+        <option value="name-desc">Name ↓</option>
+        <option value="publisher-asc">Publisher ↑</option>
+        <option value="publisher-desc">Publisher ↓</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <main class="flex-1 overflow-auto px-4 py-3" style="padding-top: calc(8rem + env(safe-area-inset-top, 0px)); padding-bottom: calc(3rem + env(safe-area-inset-bottom, 0px) * 0.5);">
+    <div id="content" class="space-y-3">Loading…</div>
+  </main>
+
+  <!-- Bottom Tabs -->
+  <nav class="fixed bottom-0 left-0 right-0 bg-[#1F1F1F] border-t border-[#444444]" style="padding-bottom: calc(env(safe-area-inset-bottom, 0px) * 0.5);">
+    <div class="flex justify-around items-center h-16">
+      <a href="index.html" class="flex flex-col items-center justify-center text-[#CCAF45] focus:outline-none focus:text-[#ECECEC]">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+      </svg>
+      <span class="text-xs mt-1 font-medium">Library</span>
+    </a>
+    <a href="add.html" class="flex flex-col items-center justify-center text-[#999999] focus:outline-none focus:text-[#ECECEC]">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+      </svg>
+      <span class="text-xs mt-1">Add</span>
+    </a>
+    <a href="Pull-list.html" class="flex flex-col items-center justify-center text-[#999999] focus:outline-none focus:text-[#ECECEC]">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3M3 11h18M5 21h14a2 2 0 002-2V8H3v11a2 2 0 002 2z"/>
+      </svg>
+      <span class="text-xs mt-1">This Week</span>
+    </a>
+    <a href="history.html" class="flex flex-col items-center justify-center text-[#999999] focus:outline-none focus:text-[#ECECEC]">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+      </svg>
+      <span class="text-xs mt-1">History</span>
+    </a>
+    <a href="settings.html" class="flex flex-col items-center justify-center text-[#999999] focus:outline-none focus:text-[#ECECEC]">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+      </svg>
+      <span class="text-xs mt-1">Settings</span>
+    </a>
+    </div>
+  </nav>
+
+  <script src="./config.js"></script>
+  <script>
+    // Configuration management - get API key and server URL from settings
+    let mylarConfig;
+    
+    // Initialize configuration
+    function initializeConfig() {
+      mylarConfig = new MylarConfig();
+      window.mylarConfig = mylarConfig;
+      // Listen for configuration updates from settings page
+      window.addEventListener('configurationUpdated', (event) => {
+        mylarConfig = new MylarConfig();
+        window.mylarConfig = mylarConfig;
+        // Reload data when configuration changes
+        loadLibraryData();
+      });
+      // If config is missing, show error but allow navigation
+      if (!mylarConfig.isUserConfigured()) {
+        const content = document.getElementById('content');
+        if (content) {
+          content.innerHTML = `<div class="text-center py-8 text-red-400">
+            <p>Configuration missing. Please set your Mylar3 server URL and API key in <a href='settings.html' class='underline text-yellow-400'>Settings</a>.</p>
+            <button onclick="location.href='settings.html'" class="mt-4 px-4 py-2 bg-[#CCAF45] text-[#1F1F1F] rounded hover:bg-[#B8A040]">Go to Settings</button>
+          </div>`;
+        }
+      }
+    }
+    
+    let allComics = [];
+
+    // Check if we're returning from a successful deletion or addition
+    function checkForDeletedMessage() {
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('deleted') === 'true') {
+        showMessage('Comic deleted successfully', 'success');
+        // Remove the parameter from URL without page reload
+        const newUrl = window.location.pathname;
+        window.history.replaceState({}, document.title, newUrl);
+      } else if (urlParams.get('added') === 'true') {
+        showMessage('Comic added successfully! It may take a moment to appear in your library.', 'success');
+        // Remove the parameter from URL without page reload
+        const newUrl = window.location.pathname;
+        window.history.replaceState({}, document.title, newUrl);
+      }
+    }
+
+    // Function to show temporary messages
+    function showMessage(message, type = 'info') {
+      // Remove existing message if any
+      const existingMessage = document.getElementById('tempMessage');
+      if (existingMessage) {
+        existingMessage.remove();
+      }
+      
+      // Create message element
+      const messageDiv = document.createElement('div');
+      messageDiv.id = 'tempMessage';
+      messageDiv.className = `fixed top-20 left-4 right-4 z-50 p-4 rounded-lg font-medium text-center ${
+        type === 'success' ? 'bg-green-600 text-white' : 
+        type === 'error' ? 'bg-red-600 text-white' : 
+        'bg-blue-600 text-white'
+      }`;
+      messageDiv.textContent = message;
+      
+      // Add to page
+      document.body.appendChild(messageDiv);
+      
+      // Remove after 3 seconds
+      setTimeout(() => {
+        if (messageDiv) {
+          messageDiv.remove();
+        }
+      }, 3000);
+    }
+
+    // Function to refresh the library with optimized loading
+    function refreshLibrary() {
+      const refreshButton = document.getElementById('refreshButton');
+      const originalContent = refreshButton.innerHTML;
+      
+      // Show loading state
+      refreshButton.innerHTML = '<div class="w-6 h-6 border-2 border-[#CCAF45] border-t-transparent rounded-full animate-spin"></div>';
+      refreshButton.disabled = true;
+      
+      showMessage('Refreshing library...', 'info');
+      
+      // Clear cache to force fresh data
+      window.dbCache.clearCache()
+        .then(() => {
+          // Reset state
+          allComics = [];
+          window.onCachedDataReady = null;
+          window.onFreshDataReady = null;
+          
+          // Reload data
+          return loadLibraryData();
+        })
+        .then(() => {
+          showMessage('Library refreshed successfully!', 'success');
+        })
+        .catch(err => {
+          showMessage('Error refreshing library: ' + err.message, 'error');
+          console.error(err);
+        })
+        .finally(() => {
+          // Restore button state
+          refreshButton.innerHTML = originalContent;
+          refreshButton.disabled = false;
+        });
+    }
+
+    document.getElementById('searchToggle').addEventListener('click', () => {
+      const input = document.getElementById('searchInput');
+      const group = document.getElementById('filterSortGroup');
+      input.classList.toggle('hidden');
+      if (!input.classList.contains('hidden')) {
+        input.focus();
+        group.classList.add('hidden');
+      } else {
+        input.value = '';
+        group.classList.remove('hidden');
+        applyFilters();
+      }
+    });
+
+    // Progressive loading with caching and fallback
+    let isLoadingFromAPI = false;
+    
+    async function loadLibraryData() {
+      // Show loading state
+      const content = document.getElementById('content');
+      content.innerHTML = '<div class="text-center py-8"><div class="loading-spinner mx-auto"></div><p class="mt-4 text-[#999999]">Loading library...</p></div>';
+      
+      try {
+        // Try API first for fastest response
+        isLoadingFromAPI = true;
+        const apiUrl = mylarConfig.buildApiUrl('getIndex');
+        const response = await fetch(apiUrl);
+        
+        if (response.ok) {
+          const json = await response.json();
+          allComics = json.data || [];
+          populateLibraryUI();
+          isLoadingFromAPI = false;
+          return;
+        }
+      } catch (err) {
+        console.log('API not available, trying database...', err);
+      }
+      
+      isLoadingFromAPI = false;
+      
+      // Fallback to database with progressive loading
+      try {
+        // Setup progressive loading callbacks
+        window.onCachedDataReady = () => {
+          console.log('Showing cached data...');
+          loadFromDatabase();
+        };
+        window.onFreshDataReady = () => {
+          console.log('Updating with fresh data...');
+          loadFromDatabase();
+        };
+        // Load database (this will trigger callbacks)
+        await window.dbCache.loadDatabase();
+        // If no callbacks were triggered, load now
+        if (allComics.length === 0) {
+          loadFromDatabase();
+        }
+      } catch (err) {
+        content.innerHTML = `<div class="text-center py-8 text-red-400">
+          <p>Error loading library: ${err.message}</p>
+          <button onclick="location.reload()" class="mt-4 px-4 py-2 bg-[#CCAF45] text-[#1F1F1F] rounded hover:bg-[#B8A040]">
+            Retry
+          </button>
+        </div>`;
+        console.error('Library loading failed:', err);
+      }
+    }
+    
+    function loadFromDatabase() {
+      try {
+        if (!window.dbCache.database) {
+          console.warn('Database not ready');
+          return;
+        }
+        
+        const stmt = window.dbCache.database.prepare('SELECT * FROM comics ORDER BY ComicName');
+        const rows = [];
+        
+        while (stmt.step()) {
+          const row = stmt.getAsObject();
+          rows.push({
+            id: row.ComicID,
+            name: row.ComicName,
+            publisher: row.ComicPublisher,
+            status: row.Status,
+            latestIssue: row.LatestIssue || '0'
+          });
+        }
+        
+        stmt.free();
+        allComics = rows;
+        populateLibraryUI();
+        
+      } catch (err) {
+        console.error('Database query failed:', err);
+        document.getElementById('content').innerHTML = `<div class="text-center py-8 text-red-400">
+          <p>Error reading database: ${err.message}</p>
+        </div>`;
+      }
+    }
+    
+    function populateLibraryUI() {
+      populatePublisherFilter();
+      addEventListeners();
+      applyFilters();
+    }
+    
+    // Initialize loading
+    loadLibraryData();
+
+    function populatePublisherFilter() {
+      const select = document.getElementById('publisherFilter');
+      Array.from(new Set(allComics.map(c => c.publisher))).sort()
+        .forEach(p => {
+          const opt = document.createElement('option');
+          opt.value = p;
+          opt.textContent = p;
+          select.appendChild(opt);
+        });
+    }
+
+    function addEventListeners() {
+      document.getElementById('searchInput').addEventListener('input', applyFilters);
+      document.getElementById('publisherFilter').addEventListener('change', applyFilters);
+      document.getElementById('sortSelect').addEventListener('change', applyFilters);
+    }
+
+    function applyFilters() {
+      const term = document.getElementById('searchInput').value.toLowerCase();
+      const pub = document.getElementById('publisherFilter').value;
+      const sort = document.getElementById('sortSelect').value;
+      let filtered = allComics.filter(c => (!pub || c.publisher === pub) && c.name.toLowerCase().includes(term));
+      if (sort === 'name-asc') filtered.sort((a,b) => a.name.localeCompare(b.name));
+      if (sort === 'name-desc') filtered.sort((a,b) => b.name.localeCompare(a.name));
+      if (sort === 'publisher-asc') filtered.sort((a,b) => a.publisher.localeCompare(b.publisher));
+      if (sort === 'publisher-desc') filtered.sort((a,b) => b.publisher.localeCompare(a.publisher));
+      renderList(filtered);
+    }
+
+    function renderList(items) {
+      const el = document.getElementById('content');
+      if (!items.length) return el.textContent = 'No comics match your criteria.';
+      
+      const getStatusColor = (status) => {
+        switch (status.toLowerCase()) {
+          case 'active': return 'bg-[#CCAF45] text-[#1F1F1F]';
+          case 'paused': return 'bg-orange-600 text-orange-200';
+          case 'ended': return 'bg-gray-600 text-gray-200';
+          case 'loading': return 'bg-blue-700 text-blue-200';
+          default: return 'bg-[#444444] text-[#ECECEC]';
+        }
+      };
+      
+      el.innerHTML = items.map(c => `
+        <a href="details.html?id=${c.id}" class="library-card block bg-[#2D2D2D] border border-[#444444] rounded-lg p-3 hover:border-[#CCAF45] focus:outline-none focus:border-[#CCAF45] transition-colors duration-200">
+          <div class="flex justify-between items-center mb-2">
+            <h2 class="text-lg font-semibold text-[#ECECEC] leading-snug">${c.name}</h2>
+            <span class="text-sm font-medium text-[#ECECEC]">#${c.latestIssue}</span>
+          </div>
+          <div class="flex justify-between items-center">
+            <p class="text-sm font-medium text-[#999999]">${c.publisher}</p>
+            <span class="text-xs font-bold px-2 py-1 rounded ${getStatusColor(c.status || 'Active')}">${c.status || 'Active'}</span>
+          </div>
+        </a>
+      `).join('');
+    }
+
+    // Call the check function on page load
+    window.addEventListener('load', checkForDeletedMessage);
+
+    // Function to apply theme variables to elements
+    function applyThemeToElements() {
+      const computedStyle = getComputedStyle(document.documentElement);
+      
+      // Update header background
+      const headers = document.querySelectorAll('header.fixed, .fixed.bg-\\[\\#1F1F1F\\]');
+      headers.forEach(header => {
+        header.style.backgroundColor = computedStyle.getPropertyValue('--bg-primary').trim();
+        header.style.borderColor = computedStyle.getPropertyValue('--border-color').trim();
+      });
+
+      // Update search container
+      const searchContainers = document.querySelectorAll('.search-container');
+      searchContainers.forEach(container => {
+        container.style.backgroundColor = computedStyle.getPropertyValue('--bg-primary').trim();
+        container.style.borderColor = computedStyle.getPropertyValue('--border-color').trim();
+      });
+
+      // Update filter selects
+      const filterSelects = document.querySelectorAll('.filter-select');
+      filterSelects.forEach(select => {
+        select.style.backgroundColor = computedStyle.getPropertyValue('--bg-secondary').trim();
+        select.style.borderColor = computedStyle.getPropertyValue('--border-color').trim();
+        select.style.color = computedStyle.getPropertyValue('--text-primary').trim();
+      });
+
+      // Update search input
+      const searchInput = document.getElementById('searchInput');
+      if (searchInput) {
+        searchInput.style.backgroundColor = computedStyle.getPropertyValue('--bg-secondary').trim();
+        searchInput.style.borderColor = computedStyle.getPropertyValue('--border-color').trim();
+        searchInput.style.color = computedStyle.getPropertyValue('--text-primary').trim();
+      }
+      
+      // Update bottom navigation
+      const bottomNav = document.querySelector('nav.fixed.bottom-0');
+      if (bottomNav) {
+        bottomNav.style.backgroundColor = computedStyle.getPropertyValue('--bg-primary').trim();
+        bottomNav.style.borderColor = computedStyle.getPropertyValue('--border-color').trim();
+      }
+      
+      // Update library cards
+      const libraryCards = document.querySelectorAll('.library-card, a.bg-\\[\\#2D2D2D\\]');
+      libraryCards.forEach(card => {
+        card.style.backgroundColor = computedStyle.getPropertyValue('--bg-secondary').trim();
+        card.style.borderColor = computedStyle.getPropertyValue('--border-color').trim();
+      });
+    }
+
+    // Apply theme on page load
+    document.addEventListener('DOMContentLoaded', () => {
+      initializeConfig();
+      setTimeout(applyThemeToElements, 100);
+      initializeAutoRefreshForLibrary();
+    });
+
+    // Initialize auto-refresh for library page
+    function initializeAutoRefreshForLibrary() {
+      // Check if auto-refresh is enabled
+      const autoRefreshEnabled = localStorage.getItem('autoRefreshEnabled') !== 'false';
+      
+      if (autoRefreshEnabled) {
+        console.log('Auto-refresh is enabled for library page');
+        
+        // Set up auto-refresh interval (15 minutes)
+        setInterval(async () => {
+          console.log('Auto-refreshing library data...');
+          await refreshLibraryData();
+        }, 15 * 60 * 1000);
+      }
+    }
+
+    // Function to refresh library data
+    async function refreshLibraryData() {
+      try {
+        // Re-run the library loading function if it exists
+        if (typeof loadLibrary === 'function') {
+          await loadLibrary();
+        } else {
+          // Fallback: reload the page
+          window.location.reload();
+        }
+        
+        console.log('Library data refreshed successfully');
+        
+        // Show subtle refresh notification
+        showRefreshNotification('Library refreshed automatically');
+        
+      } catch (error) {
+        console.error('Failed to refresh library data:', error);
+      }
+    }
+
+    // Expose refresh function globally for settings page
+    window.refreshLibrary = refreshLibraryData;
+
+    function showRefreshNotification(message) {
+      const toast = document.createElement('div');
+      toast.className = 'fixed top-20 left-4 right-4 bg-green-600 text-white p-3 rounded-lg shadow-lg z-50 transform transition-transform duration-300 text-sm';
+      toast.innerHTML = `
+        <div class="flex items-center space-x-2">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+          </svg>
+          <span>${message}</span>
+        </div>
+      `;
+      toast.style.transform = 'translateY(-100px)';
+      
+      document.body.appendChild(toast);
+      
+      setTimeout(() => {
+        toast.style.transform = 'translateY(0)';
+      }, 100);
+      
+      setTimeout(() => {
+        toast.style.transform = 'translateY(-100px)';
+        setTimeout(() => {
+          if (document.body.contains(toast)) {
+            document.body.removeChild(toast);
+          }
+        }, 300);
+      }, 2000);
+    }
+
+    // Listen for theme changes
+    window.addEventListener('themeChanged', () => {
+      setTimeout(applyThemeToElements, 50);
+    });
+    
+    // Also apply theme when the page becomes visible (e.g., returning from another tab)
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) {
+        setTimeout(applyThemeToElements, 50);
+      }
+    });
+  </script>
+</body>
+</html>
